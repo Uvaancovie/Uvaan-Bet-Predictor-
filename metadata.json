@@ -1,0 +1,6 @@
+{
+  "name": "Odds Lab",
+  "description": "Experimental odds-analysis tool for implied vs fair probability evaluation, edge detection, Brier scoring, and calibration tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
