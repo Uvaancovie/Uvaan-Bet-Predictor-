@@ -1,0 +1,54 @@
+{
+  "entities": {
+    "OddsCache": {
+      "title": "OddsCache",
+      "description": "Cached live odds for a sports competition from The-Odds-API",
+      "type": "object",
+      "properties": {
+        "league": { "type": "string" },
+        "cachedAt": { "type": "string" },
+        "expiresAt": { "type": "string" },
+        "remainingRequests": { "type": "number" },
+        "fixtures": { "type": "array" }
+      },
+      "required": ["league", "cachedAt", "expiresAt", "fixtures"]
+    },
+    "Prediction": {
+      "title": "Prediction",
+      "description": "Saved model prediction snapshot and settlement record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "matchId": { "type": "string" },
+        "homeTeam": { "type": "string" },
+        "awayTeam": { "type": "string" },
+        "league": { "type": "string" },
+        "kickoff": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "selectedOutcome": { "type": "string" },
+        "selectedOdds": { "type": "number" },
+        "selectedModelProb": { "type": "number" },
+        "selectedFairProb": { "type": "number" },
+        "selectedEdge": { "type": "number" },
+        "settled": { "type": "boolean" },
+        "actualOutcome": { "type": "string" },
+        "actualScore": { "type": "string" },
+        "settledAt": { "type": "string" },
+        "won": { "type": "boolean" },
+        "pnlUnits": { "type": "number" },
+        "brierScore": { "type": "number" }
+      },
+      "required": ["id", "homeTeam", "awayTeam", "league", "kickoff", "createdAt", "selectedOutcome", "selectedOdds", "settled"]
+    }
+  },
+  "firestore": {
+    "/odds_cache/{leagueId}": {
+      "schema": "OddsCache",
+      "description": "Cached odds collection per league to preserve external API quota"
+    },
+    "/predictions/{predictionId}": {
+      "schema": "Prediction",
+      "description": "Shared and personal prediction records with audit trail"
+    }
+  }
+}

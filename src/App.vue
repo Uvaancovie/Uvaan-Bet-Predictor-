@@ -5,7 +5,8 @@
 
     <!-- Main Content -->
     <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 pb-12">
-      <AnalyzerView v-if="store.activeTab === 'analyzer'" />
+      <UpcomingMatchesView v-if="store.activeTab === 'upcoming'" />
+      <AnalyzerView v-else-if="store.activeTab === 'analyzer'" />
       <PredictionsLogView v-else-if="store.activeTab === 'log'" />
       <StatsView v-else-if="store.activeTab === 'stats'" />
       <MethodView v-else-if="store.activeTab === 'method'" />
@@ -31,13 +32,19 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue';
 import { useOddsStore } from '@/stores/oddsStore';
 import NavigationHeader from '@/components/NavigationHeader.vue';
 import ResponsibleGamblingBanner from '@/components/ResponsibleGamblingBanner.vue';
+import UpcomingMatchesView from '@/components/UpcomingMatchesView.vue';
 import AnalyzerView from '@/components/AnalyzerView.vue';
 import PredictionsLogView from '@/components/PredictionsLogView.vue';
 import StatsView from '@/components/StatsView.vue';
 import MethodView from '@/components/MethodView.vue';
 
 const store = useOddsStore();
+
+onMounted(() => {
+  store.initFirebaseSync();
+});
 </script>

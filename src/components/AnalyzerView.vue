@@ -1,10 +1,54 @@
 <template>
   <div class="space-y-5 max-w-5xl mx-auto">
-    <!-- Top Area: Paste box first with odds hint right beside button -->
+    <!-- Top Area: Live Odds Status & Competition Selector Bar -->
+    <div class="bg-[#16181e] border border-[#262a34] rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-[#9aa1b2] font-medium">Competition:</span>
+        <div class="flex gap-1 overflow-x-auto">
+          <button
+            v-for="sport in SPORTS_CONFIG"
+            :key="sport.key"
+            @click="store.loadLiveOdds(sport.key)"
+            :class="[
+              'px-2.5 py-1 rounded-lg text-xs font-medium transition whitespace-nowrap',
+              store.selectedLeague === sport.key
+                ? 'bg-[#222632] text-[#f1f3f7] border border-[#323744]'
+                : 'text-[#9aa1b2] hover:text-[#f1f3f7] hover:bg-[#1c1f26]'
+            ]"
+          >
+            {{ sport.label }}
+          </button>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 text-[11px] font-mono text-[#9aa1b2] self-start sm:self-center">
+        <!-- Quota shield status -->
+        <span v-if="store.requestsRemaining !== null" class="hidden md:inline text-[#656c7d]">
+          Quota: <strong class="text-[#f1f3f7]">{{ store.requestsRemaining }}</strong>/500 left
+        </span>
+
+        <span v-if="store.lastLiveFetchedAt" class="text-[10px] text-[#656c7d]">
+          {{ store.isLiveCached ? 'Cached (0 quota)' : 'Live API' }}
+        </span>
+
+        <!-- Refresh button -->
+        <button
+          @click="store.loadLiveOdds(store.selectedLeague, true)"
+          :disabled="store.isLiveLoading"
+          class="px-2.5 py-1 text-xs text-[#9aa1b2] hover:text-[#f1f3f7] bg-[#1c1f26] hover:bg-[#222632] border border-[#262a34] rounded-lg transition flex items-center gap-1.5 disabled:opacity-40"
+          title="Force fresh API fetch"
+        >
+          <span :class="store.isLiveLoading ? 'animate-spin' : ''">↻</span>
+          <span>{{ store.isLiveLoading ? 'Fetching...' : 'Refresh' }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Paste Box (Main Action per rule) -->
     <section class="bg-[#16181e] border border-[#262a34] rounded-xl p-4">
       <div class="flex items-center justify-between mb-2">
         <label class="text-xs font-medium text-[#f1f3f7]">
-          Paste slate (one match per line)
+          Paste custom slate (one match per line)
         </label>
         <button
           type="button"
@@ -17,7 +61,7 @@
 
       <textarea
         v-model="slateInput"
-        rows="3"
+        rows="2"
         placeholder="Sundowns v Pirates | PSL | 2026-10-18T15:30 | 210 340 360"
         class="w-full bg-[#0f1115] border border-[#262a34] rounded-lg p-2.5 text-xs font-mono text-[#f1f3f7] focus:outline-none focus:border-[#3b82f6] transition placeholder-[#656c7d]"
       ></textarea>
@@ -28,16 +72,16 @@
             type="button"
             @click="handleParseSlate"
             :disabled="!slateInput.trim()"
-            class="px-4 py-2 text-xs font-medium text-white bg-[#3b82f6] hover:bg-[#2563eb] disabled:opacity-40 disabled:cursor-not-allowed rounded-lg transition"
+            class="px-4 py-1.5 text-xs font-medium text-white bg-[#3b82f6] hover:bg-[#2563eb] disabled:opacity-40 disabled:cursor-not-allowed rounded-lg transition"
           >
             Parse slate
           </button>
           <button
             type="button"
             @click="loadSamplePsl"
-            class="px-3 py-2 text-xs text-[#9aa1b2] hover:text-[#f1f3f7] bg-[#1c1f26] border border-[#262a34] rounded-lg transition"
+            class="px-3 py-1.5 text-xs text-[#9aa1b2] hover:text-[#f1f3f7] bg-[#1c1f26] border border-[#262a34] rounded-lg transition"
           >
-            Load sample PSL fixtures
+            Load sample PSL
           </button>
         </div>
 
@@ -46,7 +90,7 @@
         </div>
       </div>
 
-      <!-- Collapsible Manual Match Form -->
+      <!-- Collapsible Manual Form -->
       <div v-if="showManualForm" class="mt-4 pt-4 border-t border-[#262a34] space-y-3">
         <div class="text-xs font-medium text-[#f1f3f7]">Manual Single Match Entry</div>
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5 text-xs">
@@ -78,7 +122,7 @@
             />
           </div>
           <div>
-            <label class="block text-[11px] text-[#9aa1b2] mb-1">Kickoff (ISO / Local)</label>
+            <label class="block text-[11px] text-[#9aa1b2] mb-1">Kickoff</label>
             <input
               v-model="manualKickoff"
               type="datetime-local"
@@ -123,7 +167,7 @@
             @click="handleManualAdd"
             class="px-3.5 py-1.5 text-xs font-medium text-white bg-[#3b82f6] hover:bg-[#2563eb] rounded-lg transition"
           >
-            Add match to analyzer
+            Add match
           </button>
         </div>
       </div>
@@ -134,7 +178,7 @@
       v-if="store.matches.length === 0"
       class="bg-[#16181e] border border-[#262a34] rounded-xl p-8 text-center text-xs text-[#9aa1b2]"
     >
-      No fixtures loaded. Paste a slate above or click "Load sample PSL fixtures".
+      No fixtures loaded. Select a competition above or paste custom matches.
     </div>
 
     <!-- Match Cards List -->
@@ -144,39 +188,77 @@
         :key="match.id"
         class="bg-[#16181e] border border-[#262a34] rounded-xl p-4 sm:p-5 space-y-4"
       >
-        <!-- Card Header: Teams, league, kickoff on left | Bookmaker margin on right -->
+        <!-- Card Header: Teams, League, Crests, Kickoff on left | Margin & Stats on right -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#262a34] pb-3">
-          <div>
-            <div class="flex items-center gap-2 flex-wrap">
-              <h2 class="text-sm sm:text-base font-medium text-[#f1f3f7]">
-                {{ match.homeTeam }} <span class="text-[#656c7d]">v</span> {{ match.awayTeam }}
-              </h2>
-              <span class="text-[11px] text-[#9aa1b2] font-mono">
-                ({{ match.league }})
-              </span>
+          <div class="flex items-center gap-3">
+            <!-- Crests pair -->
+            <div class="flex items-center -space-x-1.5">
+              <div class="w-7 h-7 rounded-full bg-[#0f1115] border border-[#262a34] p-1 flex items-center justify-center overflow-hidden z-10">
+                <img
+                  v-if="getCrest(match.homeTeam)"
+                  :src="getCrest(match.homeTeam)"
+                  :alt="match.homeTeam"
+                  class="w-full h-full object-contain"
+                  @error="(e: any) => (e.target.style.display = 'none')"
+                />
+                <span v-else class="text-[9px] font-mono text-[#0d9488]">
+                  {{ match.homeTeam.slice(0, 2).toUpperCase() }}
+                </span>
+              </div>
+              <div class="w-7 h-7 rounded-full bg-[#0f1115] border border-[#262a34] p-1 flex items-center justify-center overflow-hidden">
+                <img
+                  v-if="getCrest(match.awayTeam)"
+                  :src="getCrest(match.awayTeam)"
+                  :alt="match.awayTeam"
+                  class="w-full h-full object-contain"
+                  @error="(e: any) => (e.target.style.display = 'none')"
+                />
+                <span v-else class="text-[9px] font-mono text-[#e11d48]">
+                  {{ match.awayTeam.slice(0, 2).toUpperCase() }}
+                </span>
+              </div>
             </div>
-            <div class="text-[11px] text-[#656c7d] font-mono mt-0.5">
-              Kickoff: {{ formatKickoff(match.kickoff) }}
-              <span v-if="isKickoffPassed(match.kickoff)" class="text-[#f87171] ml-1">
-                (Kickoff passed — saving locked)
-              </span>
+
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <h2 class="text-sm sm:text-base font-medium text-[#f1f3f7]">
+                  {{ match.homeTeam }} <span class="text-[#656c7d]">v</span> {{ match.awayTeam }}
+                </h2>
+                <span class="text-[11px] text-[#9aa1b2] font-mono">
+                  ({{ match.league }})
+                </span>
+              </div>
+              <div class="text-[11px] text-[#656c7d] font-mono mt-0.5">
+                Kickoff: {{ formatKickoff(match.kickoff) }}
+                <span v-if="isKickoffPassed(match.kickoff)" class="text-[#f87171] ml-1">
+                  (Locked)
+                </span>
+              </div>
             </div>
           </div>
 
           <div class="flex items-center gap-3 self-start sm:self-center">
             <!-- Bookmaker margin on the right -->
             <div class="text-xs font-mono text-right">
-              <span class="text-[#9aa1b2] text-[11px] mr-1">Bookmaker margin:</span>
+              <span class="text-[#9aa1b2] text-[11px] mr-1">Margin:</span>
               <span class="text-[#f1f3f7] font-medium">
                 {{ getMatchEval(match).marginPercent.toFixed(1) }}%
               </span>
             </div>
 
+            <!-- View Stats & H2H Modal button -->
+            <button
+              @click="openStats(match)"
+              class="px-2.5 py-1 text-xs text-[#9aa1b2] hover:text-[#f1f3f7] bg-[#1c1f26] hover:bg-[#222632] border border-[#262a34] rounded-lg transition"
+            >
+              Stats & H2H
+            </button>
+
             <!-- Remove match button -->
             <button
               @click="store.removeMatch(match.id)"
               class="text-[#656c7d] hover:text-[#f87171] text-xs p-1 rounded transition"
-              title="Remove match"
+              title="Remove fixture"
             >
               ✕
             </button>
@@ -207,7 +289,7 @@
         </div>
 
         <!-- Outcome Table: Odds, Market Prob, Model Prob, Diverging Edge Bar -->
-        <!-- Desktop / Tablet Table View (hidden on mobile < 600px) -->
+        <!-- Desktop / Tablet Table View -->
         <div class="hidden sm:block overflow-x-auto">
           <table class="w-full text-left border-collapse text-xs">
             <thead>
@@ -311,9 +393,9 @@
           </table>
         </div>
 
-        <!-- Mobile Layout (< 600px): Stack outcome rows into cards with full-width edge bar -->
+        <!-- Mobile Layout (< 600px) -->
         <div class="block sm:hidden space-y-2.5">
-          <!-- Home Mobile Card -->
+          <!-- Home Card -->
           <div class="bg-[#0f1115] border border-[#262a34] rounded-lg p-3 space-y-2">
             <div class="flex items-center justify-between text-xs">
               <span class="font-medium text-[#f1f3f7] flex items-center gap-1.5">
@@ -330,7 +412,6 @@
               <span>Model: {{ (getMatchEval(match).model[0] * 100).toFixed(1) }}%</span>
             </div>
 
-            <!-- Full-width edge bar with value to the right -->
             <div class="pt-1">
               <EdgeBar :edge="getMatchEval(match).edges[0]" />
             </div>
@@ -346,7 +427,7 @@
             </div>
           </div>
 
-          <!-- Draw Mobile Card -->
+          <!-- Draw Card -->
           <div class="bg-[#0f1115] border border-[#262a34] rounded-lg p-3 space-y-2">
             <div class="flex items-center justify-between text-xs">
               <span class="font-medium text-[#f1f3f7] flex items-center gap-1.5">
@@ -378,7 +459,7 @@
             </div>
           </div>
 
-          <!-- Away Mobile Card -->
+          <!-- Away Card -->
           <div class="bg-[#0f1115] border border-[#262a34] rounded-lg p-3 space-y-2">
             <div class="flex items-center justify-between text-xs">
               <span class="font-medium text-[#f1f3f7] flex items-center gap-1.5">
@@ -412,19 +493,32 @@
         </div>
       </div>
     </div>
+
+    <!-- Match Stats Modal -->
+    <MatchStatsModal
+      :isOpen="showStatsModal"
+      :match="selectedMatchForStats"
+      @close="showStatsModal = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useOddsStore } from '@/stores/oddsStore';
 import type { MatchAnalysis, OutcomeType } from '@/types';
 import EdgeBar from './EdgeBar.vue';
 import StackedProbBar from './StackedProbBar.vue';
+import MatchStatsModal from './MatchStatsModal.vue';
+import { SPORTS_CONFIG } from '@/lib/oddsApi';
+import { getTeamStats } from '@/lib/teamAssets';
 
 const store = useOddsStore();
 const slateInput = ref('');
 const showManualForm = ref(false);
+
+const showStatsModal = ref(false);
+const selectedMatchForStats = ref<MatchAnalysis | null>(null);
 
 const manualHome = ref('');
 const manualAway = ref('');
@@ -433,6 +527,19 @@ const manualKickoff = ref(new Date(Date.now() + 86400000 * 2).toISOString().slic
 const manualHomeOdds = ref<number>(210);
 const manualDrawOdds = ref<number>(340);
 const manualAwayOdds = ref<number>(360);
+
+onMounted(() => {
+  store.initFirebaseSync();
+});
+
+function getCrest(teamName: string): string {
+  return getTeamStats(teamName).crest;
+}
+
+function openStats(match: MatchAnalysis) {
+  selectedMatchForStats.value = match;
+  showStatsModal.value = true;
+}
 
 function getMatchEval(match: MatchAnalysis) {
   return store.evaluateMatch(match);
@@ -445,8 +552,7 @@ function isKickoffPassed(kickoffIso: string): boolean {
 
 function formatKickoff(kickoffIso: string): string {
   try {
-    const d = new Date(kickoffIso);
-    return d.toLocaleString(undefined, {
+    return new Date(kickoffIso).toLocaleString(undefined, {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',

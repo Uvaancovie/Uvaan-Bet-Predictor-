@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Cached live odds to preserve external API quota
+    match /odds_cache/{leagueId} {
+      allow get, list: if true;
+      allow create, update: if isValidId(leagueId)
+        && request.resource.data.league is string
+        && request.resource.data.league.size() <= 64
+        && request.resource.data.cachedAt is string
+        && request.resource.data.fixtures is list
+        && request.resource.data.fixtures.size() <= 100;
+      allow delete: if false;
+    }
+
+    // Synced Predictions and settlements
+    match /predictions/{predictionId} {
+      allow get, list: if true;
+      allow create: if isValidId(predictionId)
+        && request.resource.data.homeTeam is string
+        && request.resource.data.homeTeam.size() <= 100
+        && request.resource.data.awayTeam is string
+        && request.resource.data.awayTeam.size() <= 100
+        && request.resource.data.league is string
+        && request.resource.data.league.size() <= 64
+        && request.resource.data.selectedOdds is number
+        && request.resource.data.settled is bool;
+      allow update: if isValidId(predictionId)
+        && request.resource.data.homeTeam == resource.data.homeTeam
+        && request.resource.data.awayTeam == resource.data.awayTeam
+        && request.resource.data.settled is bool;
+      allow delete: if isValidId(predictionId);
+    }
+  }
+}
