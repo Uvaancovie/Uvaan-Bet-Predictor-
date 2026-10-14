@@ -163,6 +163,14 @@
           <div class="flex items-center gap-2">
             <button
               type="button"
+              @click="addBestValue(match)"
+              title="Add the highest-edge outcome to the slip simulator"
+              class="min-h-9 rounded-lg border border-accent/40 bg-accent/10 px-3 text-xs font-semibold text-accent transition hover:bg-accent/20"
+            >
+              ＋ Slip
+            </button>
+            <button
+              type="button"
               @click="openStats(match)"
               class="min-h-9 rounded-lg border border-line bg-inset px-3 text-xs font-medium text-muted transition hover:text-ink"
             >
@@ -241,6 +249,13 @@ function getVig(match: MatchAnalysis): string {
 function openStats(match: MatchAnalysis) {
   selectedMatchForStats.value = match;
   showStatsModal.value = true;
+}
+
+function addBestValue(match: MatchAnalysis) {
+  const ev = store.evaluateMatch(match);
+  const idx = ev.edges.indexOf(Math.max(...ev.edges));
+  const outcome = idx === 0 ? 'home' : idx === 1 ? 'draw' : 'away';
+  store.addToSlip(match, outcome);
 }
 
 function selectForAnalysis(match: MatchAnalysis) {

@@ -93,6 +93,15 @@
               Pending
             </span>
 
+            <!-- Add bet to slip button -->
+            <button
+              @click="store.addPredictionToSlip(pred)"
+              title="Add this bet to the slip simulator"
+              class="px-2.5 py-1 text-xs font-medium text-[#00f5ff] hover:bg-[#00f5ff]/10 bg-[#00f5ff]/5 border border-[#00f5ff]/30 rounded-lg transition"
+            >
+              ＋ Slip
+            </button>
+
             <!-- Settle button -->
             <button
               @click="openSettle(pred)"

@@ -1,95 +1,64 @@
-# Implementation Plan: Live Odds & Firebase Integration
+# Cloudflare Pages Build Fix — Immediate Resolution Guide
 
-Integrate **The-Odds-API** for real-time sports fixtures and odds, and configure **Firebase Firestore** as an intelligent caching layer and persistent store for predictions.
+Cloudflare Pages is failing because it detects `bun.lock` in your repository and attempts to run `bun install --frozen-lockfile`. 
 
----
-
-## 1. Architecture & Quota Protection
-
-**The-Odds-API Free Tier Constraints:**
-- 500 requests/month limit.
-- Directly fetching from the client on every page load would exhaust the monthly limit within days.
-
-**Solution: Firestore-Backed Quota Shield**
-```
-[The-Odds-API]
-      │ (Cached 15–30 min TTL)
-      ▼
-[Firestore Cache: /odds_cache/{league}]
-      │
-      ▼
-[Uvaan's Bet Predictor (Vue 3 Client)]
-      │
-      ├──> Analyzes Implied vs Fair vs Model
-      └──> Syncs Predictions to [/predictions]
-```
-
-1. **Client / Server Proxy**:
-   - Read from Firestore cache first.
-   - Only call The-Odds-API when cache is expired (TTL > 15–30 minutes) or upon user-initiated manual refresh.
-   - Store and display remaining monthly quota returned by The-Odds-API headers (`x-requests-remaining`).
-2. **Graceful Fallback**:
-   - If no API key is provided, or quota runs out, seamless switch to the built-in PSL/EPL fixtures with a clear badge.
-3. **API Key Input**:
-   - Configure via environment variable or in-app Settings modal with local encrypted storage.
+Here are the **two instant ways** to resolve this error:
 
 ---
 
-## 2. Firebase Provisioning & Data Schema
+### Solution A: The 2-Minute Cloudflare Dashboard Fix (No Git needed!)
 
-### Collections
-1. **`odds_cache/{league}`**:
-   - `league`: e.g. `soccer_epl`, `soccer_uefa_champs_league`, `soccer_south_africa_psl`
-   - `fixtures`: array of matches with Home, Away, Kickoff, Bookmaker Odds (Home, Draw, Away)
-   - `cachedAt`: timestamp
-   - `expiresAt`: timestamp
-2. **`predictions/{id}`**:
-   - `matchId`, `homeTeam`, `awayTeam`, `league`, `kickoff`
-   - `oddsSnapshot`, `fairSnapshot`, `modelSnapshot`, `edges`
-   - `selectedOutcome`, `selectedOdds`, `createdAt`
-   - `settled`, `actualOutcome`, `actualScore`, `brierScore`, `pnlUnits`
-3. **`api_quota/status`**:
-   - `remainingRequests`: integer
-   - `usedThisMonth`: integer
-   - `lastFetchedAt`: timestamp
+You can tell Cloudflare to ignore Bun and use `npm` directly from the Cloudflare Dashboard:
 
----
-
-## 3. Scope of Changes
-
-### Phase 1: Firebase Provisioning
-- Run `set_up_firebase` tool to provision Firestore.
-- Generate secure `firestore.rules` and `firebase-applet-config.json`.
-- Install Firebase client SDK (`firebase`) and initialize in `src/lib/firebase.ts`.
-
-### Phase 2: Live Odds Service (`src/lib/oddsApi.ts`)
-- The-Odds-API client fetching fixtures for:
-  - English Premier League (`soccer_epl`)
-  - UEFA Champions League (`soccer_uefa_champs_league`)
-  - South Africa PSL (`soccer_south_africa_psl` / Rest of World)
-- Conversion of live decimal odds to integer cents (`2.10 -> 210`).
-- Firestore caching read/write layer with TTL expiration logic.
-
-### Phase 3: Store & State Refactor (`src/stores/oddsStore.ts`)
-- Connect store to Firestore real-time listeners (`onSnapshot`).
-- Add `fetchLiveOdds(forceRefresh?: boolean)` action.
-- Add live odds status, remaining quota counter, and cache timestamp to store state.
-- Keep local persistence fallback if offline.
-
-### Phase 4: UI Enhancements (Maintaining Minimalist Design)
-- **Top Control Bar**:
-  - Live status indicator: `"Live Odds (Updated 12m ago)"`
-  - Remaining API credits indicator: `"482 / 500 requests left"`
-  - Quick `"Refresh Live Odds"` button with cooldown timer.
-- **League Selector**: Switch between Live PSL, EPL, Champions League, or Custom Paste.
-- **Odds Drift Indicators**: Show subtle directional indicators if odds moved since last fetch.
-- **API Key Configuration Drawer**: Simple, clean drawer to enter or update the user's free The-Odds-API key.
+1. In the **Cloudflare Dashboard**, open your project under **Workers & Pages**.
+2. Go to **Settings** → **Builds & deployments**.
+3. Under **Build configurations**, click **Edit configuration**:
+   - Change **Build command** to:
+     ```bash
+     npm install && npm run build
+     ```
+   - Make sure **Build output directory** is: `dist`
+   - Click **Save**.
+4. Now go to **Settings** → **Environment variables**:
+   - Click **Add variable** (under Production):
+     - **Variable name**: `SKIP_DEPENDENCY_INSTALL`
+     - **Value**: `true`
+   - Click **Add variable**:
+     - **Variable name**: `NODE_VERSION`
+     - **Value**: `20`
+   - Click **Add variable** (optional, recommended):
+     - **Variable name**: `VITE_ODDS_API_KEY`
+     - **Value**: `b59370b4edcfdb8e3ef4104f2ca72dac`
+   - Click **Save**.
+5. Go to the **Deployments** tab, find the failed deployment, click the three dots (`...`), and click **Retry deployment**.
+   - Cloudflare will skip the broken `bun install` step and run `npm install && npm run build` successfully.
 
 ---
 
-## 4. Verification & Testing
+### Solution B: Delete `bun.lock` from the Repository (Permanent Fix)
 
-- Validate conversion math (`2.10 -> 210`) against `src/lib/odds.test.ts`.
-- Verify caching prevents duplicate API requests within TTL window.
-- Verify kickoff lock rule remains strictly enforced for live games.
-- Confirm 18+ and responsible gambling footer remains visible across all screens.
+Because this project is built for Node.js & npm (it already has `package.json` and `package-lock.json`), `bun.lock` is unnecessary.
+
+#### On GitHub:
+1. Open your repository on GitHub.
+2. Click on the file `bun.lock`.
+3. Click the **Trash icon** (Delete this file) in the top-right corner.
+4. Click **Commit changes**.
+5. Cloudflare Pages will automatically detect the new commit, see `package-lock.json`, and run `npm ci` cleanly.
+
+#### In This Workspace (Ready to execute upon plan approval):
+1. Delete `/bun.lock`.
+2. Create `/public/_redirects` containing:
+   ```
+   /*  /index.html  200
+   ```
+   *(This ensures that clicking refresh or direct linking to tabs on Cloudflare Pages doesn't return a 404).*
+3. Verify compilation with `npm run build`.
+
+---
+
+### Verification Checklist Once Deployed
+- [ ] Build succeeds on Cloudflare Pages (green checkmark).
+- [ ] Visit your Cloudflare Pages URL (e.g. `https://your-project.pages.dev`).
+- [ ] Verify the odds dashboard loads live fixtures (Premier League, PSL, Champions League).
+- [ ] Verify test bet placement and bankroll simulator work smoothly.

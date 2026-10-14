@@ -540,6 +540,31 @@ export const useOddsStore = defineStore('odds', {
       this.isSlipOpen = true;
     },
 
+    addPredictionToSlip(pred: PredictionRecord) {
+      const existing = this.slipLegs.findIndex((l) => l.matchId === pred.matchId && l.outcome === pred.selectedOutcome);
+      const leg: SlipLeg = {
+        matchId: pred.matchId,
+        homeTeam: pred.homeTeam,
+        awayTeam: pred.awayTeam,
+        league: pred.league,
+        kickoff: pred.kickoff,
+        outcome: pred.selectedOutcome,
+        odds: pred.selectedOdds,
+        modelProb: pred.selectedModelProb,
+        fairProb: pred.selectedFairProb,
+        edge: pred.selectedEdge,
+      };
+      if (existing >= 0) {
+        this.slipLegs[existing] = leg;
+      } else {
+        // One leg per match: replace any other outcome for the same match
+        this.slipLegs = this.slipLegs.filter((l) => l.matchId !== pred.matchId);
+        this.slipLegs.push(leg);
+      }
+      this.showToast(`Added to slip: ${pred.homeTeam} v ${pred.awayTeam} (${pred.selectedOutcome.toUpperCase()})`);
+      this.isSlipOpen = true;
+    },
+
     removeFromSlip(matchId: string) {
       this.slipLegs = this.slipLegs.filter((l) => l.matchId !== matchId);
     },
