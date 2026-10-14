@@ -1,38 +1,43 @@
 <template>
-  <header class="bg-[#0c1017] border-b border-[#1e2638] sticky top-0 z-40 backdrop-blur-md">
-    <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
-      <!-- Title & Tony Stark HUD Badge -->
-      <div class="flex items-center gap-2.5">
-        <div class="w-7 h-7 rounded-lg bg-[#00f5ff]/10 border border-[#00f5ff]/40 flex items-center justify-center font-mono text-[#00f5ff] text-xs font-bold shadow-[0_0_10px_rgba(0,245,255,0.2)]">
-          ◈
-        </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <span class="font-bold text-sm sm:text-base text-[#f0f4fc] tracking-tight">
+  <header class="sticky top-0 z-40 border-b border-line bg-app/85 backdrop-blur-xl">
+    <div class="mx-auto max-w-6xl px-4 sm:px-6">
+      <div class="flex h-14 items-center justify-between gap-4">
+        <div class="flex min-w-0 items-center gap-2.5">
+          <div class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-accent/40 bg-accent/10 font-mono text-[11px] font-semibold text-accent">
+            UB
+          </div>
+          <div class="min-w-0">
+            <div class="truncate text-sm font-semibold tracking-tight text-ink sm:text-base">
               Uvaan's Bet Predictor
-            </span>
-            <span class="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded-xs bg-[#00f5ff]/10 text-[#00f5ff] border border-[#00f5ff]/30 hidden xs:inline">
-              AI // MARK-VII
-            </span>
-          </div>
-          <div class="text-[10px] text-[#56647a] font-mono -mt-0.5 hidden md:block">
-            TACTICAL RADAR & PROBABILITY TELEMETRY
+            </div>
+            <div class="hidden truncate text-[11px] text-faint sm:block">
+              Fair price, edge, and calibration
+            </div>
           </div>
         </div>
+
+        <nav class="hidden items-center gap-1 lg:flex" aria-label="Primary">
+          <button
+            v-for="tab in tabs"
+            :key="tab.id"
+            type="button"
+            @click="store.activeTab = tab.id"
+            :aria-current="store.activeTab === tab.id ? 'page' : undefined"
+            :class="tabClass(tab.id)"
+          >
+            {{ tab.name }}
+          </button>
+        </nav>
       </div>
 
-      <!-- Navigation Tabs -->
-      <nav class="flex items-center gap-1 overflow-x-auto py-1">
+      <nav class="-mx-1 flex gap-1 overflow-x-auto pb-2.5 lg:hidden" aria-label="Primary">
         <button
           v-for="tab in tabs"
           :key="tab.id"
+          type="button"
           @click="store.activeTab = tab.id"
-          :class="[
-            'px-2.5 sm:px-3 py-1.5 text-xs font-mono rounded transition whitespace-nowrap border',
-            store.activeTab === tab.id
-              ? 'bg-[#00f5ff]/15 text-[#00f5ff] border-[#00f5ff]/50 shadow-[0_0_10px_rgba(0,245,255,0.15)] font-semibold'
-              : 'text-[#8d9bb0] border-transparent hover:text-[#f0f4fc] hover:bg-[#141a26]'
-          ]"
+          :aria-current="store.activeTab === tab.id ? 'page' : undefined"
+          :class="tabClass(tab.id)"
         >
           {{ tab.name }}
         </button>
@@ -54,4 +59,14 @@ const tabs = computed(() => [
   { id: 'stats' as const, name: 'Track Record' },
   { id: 'method' as const, name: 'Method' },
 ]);
+
+function tabClass(id: (typeof tabs.value)[number]['id']) {
+  const active = store.activeTab === id;
+  return [
+    'shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition',
+    active
+      ? 'border-accent/50 bg-accent/15 text-accent'
+      : 'border-transparent text-muted hover:bg-raised hover:text-ink',
+  ];
+}
 </script>

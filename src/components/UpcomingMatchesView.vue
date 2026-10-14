@@ -1,184 +1,185 @@
 <template>
-  <div class="space-y-5 max-w-5xl mx-auto">
-    <!-- Futuristic Holographic Tactical Banner -->
+  <div class="space-y-5">
     <HoloPitchBanner />
 
-    <!-- Control Bar: Competition Filter & Telemetry -->
-    <div class="bg-[#0e121a] border border-[#1e2638] rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hud-bracket">
-      <!-- Competitions -->
-      <div class="flex items-center gap-2 flex-wrap">
-        <span class="text-[#8d9bb0] font-mono text-[11px] uppercase tracking-wider">Target League:</span>
-        <div class="flex gap-1 overflow-x-auto py-0.5">
-          <button
-            v-for="sport in SPORTS_CONFIG"
-            :key="sport.key"
-            @click="store.loadLiveOdds(sport.key)"
-            :class="[
-              'px-2.5 py-1 rounded text-xs font-mono font-medium transition whitespace-nowrap border',
-              store.selectedLeague === sport.key
-                ? 'bg-[#00f5ff]/15 text-[#00f5ff] border-[#00f5ff]/50'
-                : 'bg-[#080a0f] text-[#8d9bb0] border-[#1e2638] hover:text-[#f0f4fc] hover:border-[#2b364e]'
-            ]"
-          >
-            {{ sport.label }}
-          </button>
+    <section class="rounded-2xl border border-line bg-surface p-3 sm:p-4">
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div class="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+          <span class="shrink-0 text-[11px] font-semibold uppercase tracking-[0.14em] text-faint">League</span>
+          <div class="flex gap-1.5 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0" role="group" aria-label="League">
+            <button
+              v-for="sport in SPORTS_CONFIG"
+              :key="sport.key"
+              type="button"
+              @click="store.loadLiveOdds(sport.key)"
+              :aria-pressed="store.selectedLeague === sport.key"
+              :class="[
+                'shrink-0 rounded-lg border px-2.5 py-1.5 text-xs font-medium whitespace-nowrap transition',
+                store.selectedLeague === sport.key
+                  ? 'border-accent/50 bg-accent/15 text-accent'
+                  : 'border-line bg-inset text-muted hover:border-line-strong hover:text-ink'
+              ]"
+            >
+              {{ sport.label }}
+            </button>
+          </div>
         </div>
-      </div>
-
-      <!-- Live Fetch Status & Action -->
-      <div class="flex items-center gap-3 text-[11px] font-mono text-[#8d9bb0] self-start sm:self-center">
-        <span v-if="store.lastLiveFetchedAt" class="text-[10px] text-[#56647a]">
-          {{ store.isLiveCached ? 'FIRESTORE_CACHE // 0_QUOTA' : 'LIVE_FEED // ACTIVE' }}
-        </span>
 
         <button
+          type="button"
           @click="store.loadLiveOdds(store.selectedLeague, true)"
           :disabled="store.isLiveLoading"
-          class="px-3 py-1 text-xs text-[#00f5ff] hover:bg-[#00f5ff]/10 bg-[#080a0f] border border-[#00f5ff]/40 rounded font-mono transition flex items-center gap-1.5 disabled:opacity-40"
+          class="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 self-start rounded-lg border border-accent/40 bg-inset px-3 text-xs font-semibold text-accent transition hover:bg-accent/10 disabled:opacity-40 lg:self-center"
         >
-          <span :class="store.isLiveLoading ? 'animate-spin' : ''">↻</span>
-          <span>{{ store.isLiveLoading ? 'SCANNING...' : 'SYNC LIVE' }}</span>
+          <span :class="store.isLiveLoading ? 'inline-block animate-spin' : ''" aria-hidden="true">↻</span>
+          <span>{{ store.isLiveLoading ? 'Syncing…' : 'Sync live odds' }}</span>
         </button>
       </div>
-    </div>
+    </section>
 
-    <!-- Search filter input -->
-    <div class="relative">
-      <input
-        v-model="searchQuery"
-        type="text"
-        placeholder="Filter fixture by club or venue..."
-        class="w-full bg-[#0e121a] border border-[#1e2638] rounded-xl px-3.5 py-2 text-xs font-mono text-[#f0f4fc] placeholder-[#56647a] focus:outline-none focus:border-[#00f5ff]/80 transition"
-      />
-      <span v-if="searchQuery" @click="searchQuery = ''" class="absolute right-3.5 top-2.5 text-[#56647a] hover:text-[#f0f4fc] cursor-pointer text-xs">
-        ✕
-      </span>
-    </div>
-
-    <!-- Empty State -->
-    <div
-      v-if="filteredMatches.length === 0"
-      class="bg-[#0e121a] border border-[#1e2638] rounded-xl p-10 text-center space-y-2 hud-bracket"
-    >
-      <div class="text-2xl text-[#00f5ff]">📡</div>
-      <div class="text-xs font-mono text-[#f0f4fc]">NO TELEMETRY STREAM DETECTED</div>
-      <p class="text-xs text-[#8d9bb0] max-w-sm mx-auto">
-        No matches found matching query. Click "SYNC LIVE" or select another competition.
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <label class="relative block min-w-0 flex-1">
+        <span class="sr-only">Search fixtures</span>
+        <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+          <circle cx="8.5" cy="8.5" r="5.5" stroke-width="1.6" />
+          <path d="M12.5 12.5 17 17" stroke-width="1.6" stroke-linecap="round" />
+        </svg>
+        <input
+          v-model="searchQuery"
+          type="search"
+          placeholder="Search club or league"
+          class="w-full rounded-xl border border-line bg-surface py-2.5 pl-10 pr-10 text-sm text-ink placeholder:text-faint focus:border-accent focus:outline-none"
+        />
+        <button
+          v-if="searchQuery"
+          type="button"
+          @click="searchQuery = ''"
+          class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md px-2 py-1 text-xs text-faint hover:text-ink"
+          aria-label="Clear search"
+        >
+          ✕
+        </button>
+      </label>
+      <p class="text-xs text-faint sm:shrink-0">
+        {{ filteredMatches.length }} {{ filteredMatches.length === 1 ? 'fixture' : 'fixtures' }}
       </p>
     </div>
 
-    <!-- Live Matches Grid / Minimalist Futuristic Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-      <div
-        v-for="match in filteredMatches"
-        :key="match.id"
-        class="bg-[#0e121a] border border-[#1e2638] rounded-xl p-4 transition-all duration-200 hover:border-[#00f5ff]/40 space-y-3 hud-bracket hud-glow flex flex-col justify-between"
-      >
-        <!-- Top: League badge & Kickoff countdown -->
-        <div class="flex items-center justify-between text-[11px] font-mono border-b border-[#1e2638] pb-2.5">
-          <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase bg-[#080a0f] text-[#00f5ff] border border-[#00f5ff]/30">
-            {{ match.league }}
-          </span>
-          <div class="flex items-center gap-1.5 text-[#8d9bb0]">
-            <span class="text-[#00f5ff]">⏱</span>
-            <span>{{ formatKickoff(match.kickoff) }}</span>
-          </div>
-        </div>
-
-        <!-- Middle: Club Crests, Team Names, and Market Odds Badges -->
-        <div class="space-y-3">
-          <!-- Teams -->
-          <div class="flex items-center justify-between gap-3">
-            <!-- Home Team -->
-            <div class="flex items-center gap-2.5 flex-1 min-w-0">
-              <div class="w-8 h-8 rounded-lg bg-[#080a0f] border border-[#1e2638] p-1 flex items-center justify-center overflow-hidden shrink-0">
-                <img
-                  v-if="getCrest(match.homeTeam)"
-                  :src="getCrest(match.homeTeam)"
-                  :alt="match.homeTeam"
-                  class="w-full h-full object-contain"
-                  @error="(e: any) => (e.target.style.display = 'none')"
-                />
-                <span v-else class="text-[10px] font-mono text-[#00f5d4]">
-                  {{ match.homeTeam.slice(0, 2).toUpperCase() }}
-                </span>
-              </div>
-              <div class="font-medium text-xs sm:text-sm text-[#f0f4fc] truncate">
-                {{ match.homeTeam }}
-              </div>
-            </div>
-
-            <span class="text-[11px] font-mono text-[#56647a] shrink-0">VS</span>
-
-            <!-- Away Team -->
-            <div class="flex items-center justify-end gap-2.5 flex-1 min-w-0 text-right">
-              <div class="font-medium text-xs sm:text-sm text-[#f0f4fc] truncate">
-                {{ match.awayTeam }}
-              </div>
-              <div class="w-8 h-8 rounded-lg bg-[#080a0f] border border-[#1e2638] p-1 flex items-center justify-center overflow-hidden shrink-0">
-                <img
-                  v-if="getCrest(match.awayTeam)"
-                  :src="getCrest(match.awayTeam)"
-                  :alt="match.awayTeam"
-                  class="w-full h-full object-contain"
-                  @error="(e: any) => (e.target.style.display = 'none')"
-                />
-                <span v-else class="text-[10px] font-mono text-[#f43f5e]">
-                  {{ match.awayTeam.slice(0, 2).toUpperCase() }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Market 1X2 Odds Pills -->
-          <div class="grid grid-cols-3 gap-2 text-center text-xs font-mono tabular-nums">
-            <div class="bg-[#080a0f] border border-[#1e2638] rounded-lg p-2">
-              <span class="text-[10px] text-[#00f5d4] block">1 (Home)</span>
-              <span class="font-bold text-[#f0f4fc] mt-0.5 block">
-                {{ (match.homeOdds / 100).toFixed(2) }}
-              </span>
-            </div>
-            <div class="bg-[#080a0f] border border-[#1e2638] rounded-lg p-2">
-              <span class="text-[10px] text-[#94a3b8] block">X (Draw)</span>
-              <span class="font-bold text-[#f0f4fc] mt-0.5 block">
-                {{ (match.drawOdds / 100).toFixed(2) }}
-              </span>
-            </div>
-            <div class="bg-[#080a0f] border border-[#1e2638] rounded-lg p-2">
-              <span class="text-[10px] text-[#f43f5e] block">2 (Away)</span>
-              <span class="font-bold text-[#f0f4fc] mt-0.5 block">
-                {{ (match.awayOdds / 100).toFixed(2) }}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Bottom Actions: Analyze in Lab & H2H Radar -->
-        <div class="pt-2 border-t border-[#1e2638] flex items-center justify-between gap-2 text-xs font-mono">
-          <span class="text-[10px] text-[#56647a]">
-            Vig: {{ getVig(match) }}%
-          </span>
-
-          <div class="flex items-center gap-2">
-            <button
-              @click="openStats(match)"
-              class="px-2.5 py-1 text-xs text-[#8d9bb0] hover:text-[#f0f4fc] bg-[#080a0f] border border-[#1e2638] rounded transition"
-            >
-              H2H Radar
-            </button>
-            <button
-              @click="selectForAnalysis(match)"
-              class="px-3 py-1 text-xs font-semibold text-black bg-[#00f5ff] hover:bg-[#38bdf8] rounded transition flex items-center gap-1 shadow-xs"
-            >
-              <span>Analyze</span>
-              <span>→</span>
-            </button>
-          </div>
-        </div>
-      </div>
+    <div
+      v-if="filteredMatches.length === 0"
+      class="rounded-2xl border border-dashed border-line bg-surface px-6 py-14 text-center"
+    >
+      <h2 class="text-base font-semibold text-ink">No fixtures match</h2>
+      <p class="mx-auto mt-1 max-w-sm text-sm text-muted">
+        Try another club name, or sync live odds for a different league.
+      </p>
     </div>
 
-    <!-- Match Stats Modal -->
+    <div v-else class="grid grid-cols-1 gap-3.5 md:grid-cols-2" :aria-busy="store.isLiveLoading">
+      <article
+        v-for="match in filteredMatches"
+        :key="match.id"
+        class="flex flex-col justify-between gap-4 rounded-2xl border border-line bg-surface p-4 transition hover:border-accent/40"
+      >
+        <div class="flex items-center justify-between gap-3 border-b border-line pb-3 text-xs">
+          <span class="rounded-md border border-accent/30 bg-accent/10 px-2 py-0.5 font-semibold uppercase tracking-wide text-accent">
+            {{ match.league }}
+          </span>
+          <div class="text-right">
+            <div class="font-medium text-ink">{{ formatKickoff(match.kickoff).primary }}</div>
+            <div v-if="formatKickoff(match.kickoff).relative" class="text-[11px] text-faint">
+              {{ formatKickoff(match.kickoff).relative }}
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex min-w-0 flex-1 items-center gap-2.5">
+              <div class="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg border border-line bg-inset p-1">
+                <img
+                  v-if="getCrest(match.homeTeam) && !hiddenCrests[match.homeTeam]"
+                  :src="getCrest(match.homeTeam)"
+                  :alt="''"
+                  class="h-full w-full object-contain"
+                  @error="hideCrest(match.homeTeam)"
+                />
+                <span v-else class="font-mono text-[11px] font-semibold text-home">{{ initials(match.homeTeam) }}</span>
+              </div>
+              <div class="truncate text-sm font-semibold text-ink sm:text-base">{{ match.homeTeam }}</div>
+            </div>
+
+            <span class="shrink-0 font-mono text-[11px] text-faint">vs</span>
+
+            <div class="flex min-w-0 flex-1 items-center justify-end gap-2.5 text-right">
+              <div class="truncate text-sm font-semibold text-ink sm:text-base">{{ match.awayTeam }}</div>
+              <div class="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg border border-line bg-inset p-1">
+                <img
+                  v-if="getCrest(match.awayTeam) && !hiddenCrests[match.awayTeam]"
+                  :src="getCrest(match.awayTeam)"
+                  :alt="''"
+                  class="h-full w-full object-contain"
+                  @error="hideCrest(match.awayTeam)"
+                />
+                <span v-else class="font-mono text-[11px] font-semibold text-away">{{ initials(match.awayTeam) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <button
+              type="button"
+              @click="store.addToSlip(match, 'home')"
+              title="Add home to bet slip simulator"
+              class="rounded-lg border border-line bg-inset px-2 py-2 transition hover:border-accent/50 hover:bg-accent/10"
+            >
+              <div class="text-[10px] font-semibold uppercase tracking-wider text-home">Home ＋</div>
+              <div class="mt-0.5 font-mono text-lg font-semibold tabular-nums text-ink">{{ decimal(match.homeOdds) }}</div>
+            </button>
+            <button
+              type="button"
+              @click="store.addToSlip(match, 'draw')"
+              title="Add draw to bet slip simulator"
+              class="rounded-lg border border-line bg-inset px-2 py-2 transition hover:border-accent/50 hover:bg-accent/10"
+            >
+              <div class="text-[10px] font-semibold uppercase tracking-wider text-draw">Draw ＋</div>
+              <div class="mt-0.5 font-mono text-lg font-semibold tabular-nums text-ink">{{ decimal(match.drawOdds) }}</div>
+            </button>
+            <button
+              type="button"
+              @click="store.addToSlip(match, 'away')"
+              title="Add away to bet slip simulator"
+              class="rounded-lg border border-line bg-inset px-2 py-2 transition hover:border-accent/50 hover:bg-accent/10"
+            >
+              <div class="text-[10px] font-semibold uppercase tracking-wider text-away">Away ＋</div>
+              <div class="mt-0.5 font-mono text-lg font-semibold tabular-nums text-ink">{{ decimal(match.awayOdds) }}</div>
+            </button>
+          </div>
+          <p class="text-[11px] text-faint">Tap an odds box to add it to the 🎲 slip simulator.</p>
+        </div>
+
+        <div class="flex items-center justify-between gap-2 border-t border-line pt-3">
+          <span class="font-mono text-[11px] text-faint">Margin {{ getVig(match) }}%</span>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              @click="openStats(match)"
+              class="min-h-9 rounded-lg border border-line bg-inset px-3 text-xs font-medium text-muted transition hover:text-ink"
+            >
+              Head to head
+            </button>
+            <button
+              type="button"
+              @click="selectForAnalysis(match)"
+              class="min-h-9 rounded-lg bg-accent px-3 text-xs font-semibold text-app transition hover:brightness-110"
+            >
+              Analyze
+            </button>
+          </div>
+        </div>
+      </article>
+    </div>
+
     <MatchStatsModal
       :isOpen="showStatsModal"
       :match="selectedMatchForStats"
@@ -198,9 +199,9 @@ import MatchStatsModal from './MatchStatsModal.vue';
 
 const store = useOddsStore();
 const searchQuery = ref('');
-
 const showStatsModal = ref(false);
 const selectedMatchForStats = ref<MatchAnalysis | null>(null);
+const hiddenCrests = ref<Record<string, true>>({});
 
 const filteredMatches = computed(() => {
   return store.matches.filter((m) => {
@@ -218,6 +219,20 @@ function getCrest(teamName: string): string {
   return getTeamStats(teamName).crest;
 }
 
+function hideCrest(teamName: string) {
+  hiddenCrests.value = { ...hiddenCrests.value, [teamName]: true };
+}
+
+function initials(teamName: string): string {
+  const parts = teamName.split(/\s+/).filter(Boolean).slice(0, 2);
+  const letters = parts.map((part) => part[0] ?? '').join('');
+  return (letters || teamName.slice(0, 2)).toUpperCase();
+}
+
+function decimal(oddsTimes100: number): string {
+  return (oddsTimes100 / 100).toFixed(2);
+}
+
 function getVig(match: MatchAnalysis): string {
   const ev = store.evaluateMatch(match);
   return ev.marginPercent.toFixed(1);
@@ -229,25 +244,30 @@ function openStats(match: MatchAnalysis) {
 }
 
 function selectForAnalysis(match: MatchAnalysis) {
-  // Ensure match is in store matches list
   if (!store.matches.some((m) => m.id === match.id)) {
     store.matches.unshift(match);
   }
-  // Switch to Analyzer tab
+  store.focusedMatchId = match.id;
   store.activeTab = 'analyzer';
-  store.showToast(`Transferred ${match.homeTeam} v ${match.awayTeam} to Analyzer`);
+  store.showToast(`Opened ${match.homeTeam} v ${match.awayTeam} in the analyzer`);
 }
 
-function formatKickoff(kickoffIso: string): string {
-  try {
-    return new Date(kickoffIso).toLocaleString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return kickoffIso;
-  }
+function formatKickoff(kickoffIso: string): { primary: string; relative: string } {
+  const parsed = new Date(kickoffIso);
+  if (Number.isNaN(parsed.getTime())) return { primary: kickoffIso, relative: '' };
+  const primary = parsed.toLocaleString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  const diffMs = parsed.getTime() - Date.now();
+  const hours = Math.round(diffMs / 36e5);
+  let relative = '';
+  if (hours < 0) relative = 'Started';
+  else if (hours < 1) relative = 'Within the hour';
+  else if (hours < 48) relative = `In ${hours}h`;
+  return { primary, relative };
 }
 </script>

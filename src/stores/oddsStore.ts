@@ -15,6 +15,7 @@ import type {
   OutcomeType,
   SettlementResult,
   PriceAlert,
+  SlipLeg,
 } from '@/types';
 import { fetchLiveOdds, SPORTS_CONFIG, ODDS_API_KEY } from '@/lib/oddsApi';
 import { db } from '@/lib/firebase';
@@ -229,8 +230,11 @@ export const useOddsStore = defineStore('odds', {
       requestsRemaining: null as number | null,
       requestsUsed: null as number | null,
       toastMessage: null as string | null,
+      focusedMatchId: null as string | null,
       firebaseInitialized: false,
       hasLiveKey: !!ODDS_API_KEY,
+      slipLegs: [] as SlipLeg[],
+      isSlipOpen: false,
     };
   },
 
@@ -499,6 +503,49 @@ export const useOddsStore = defineStore('odds', {
       }
 
       this.showToast(`Settled: ${pred.homeTeam} v ${pred.awayTeam} (${pred.won ? 'Won' : 'Lost'})`);
+    },
+
+    openSlip() {
+      this.isSlipOpen = true;
+    },
+
+    closeSlip() {
+      this.isSlipOpen = false;
+    },
+
+    addToSlip(match: MatchAnalysis, outcome: OutcomeType) {
+      const evalData = this.evaluateMatch(match);
+      const idx = outcome === 'home' ? 0 : outcome === 'draw' ? 1 : 2;
+      const odds = outcome === 'home' ? match.homeOdds : outcome === 'draw' ? match.drawOdds : match.awayOdds;
+      const existing = this.slipLegs.findIndex((l) => l.matchId === match.id);
+      const leg: SlipLeg = {
+        matchId: match.id,
+        homeTeam: match.homeTeam,
+        awayTeam: match.awayTeam,
+        league: match.league,
+        kickoff: match.kickoff,
+        outcome,
+        odds,
+        modelProb: evalData.model[idx],
+        fairProb: evalData.fair[idx],
+        edge: evalData.edges[idx],
+      };
+      if (existing >= 0) {
+        this.slipLegs[existing] = leg;
+        this.showToast(`Updated slip: ${match.homeTeam} v ${match.awayTeam} (${outcome.toUpperCase()})`);
+      } else {
+        this.slipLegs.push(leg);
+        this.showToast(`Added to slip: ${match.homeTeam} v ${match.awayTeam} (${outcome.toUpperCase()})`);
+      }
+      this.isSlipOpen = true;
+    },
+
+    removeFromSlip(matchId: string) {
+      this.slipLegs = this.slipLegs.filter((l) => l.matchId !== matchId);
+    },
+
+    clearSlip() {
+      this.slipLegs = [];
     },
 
     async deletePrediction(id: string) {

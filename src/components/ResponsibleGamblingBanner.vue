@@ -1,26 +1,20 @@
 <template>
-  <footer class="w-full bg-[#080a0f] border-t border-[#1e2638] px-4 py-2.5 text-xs text-[#8d9bb0] font-mono">
-    <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px]">
-      <div class="flex items-center gap-2">
-        <span class="px-1.5 py-0.2 rounded-xs text-[10px] bg-[#141a26] text-[#00f5ff] border border-[#00f5ff]/30 font-bold">
+  <footer class="border-t border-line bg-app px-4 py-3 text-xs text-muted sm:px-6">
+    <div class="mx-auto flex max-w-6xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <p class="flex items-center gap-2 leading-relaxed">
+        <span class="rounded-md border border-line-strong px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-ink">
           18+
         </span>
         <span>Experimental model. Not betting advice. Gamble responsibly.</span>
-      </div>
-      <div>
-        <a
-          href="https://www.responsiblegambling.org.za/"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-[#00f5ff] hover:underline"
-        >
-          responsiblegambling.org.za ↗
-        </a>
-      </div>
+      </p>
+      <a
+        href="https://www.responsiblegambling.org.za/"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="text-accent underline-offset-2 hover:underline"
+      >
+        responsiblegambling.org.za
+      </a>
     </div>
   </footer>
 </template>
-
-<script setup lang="ts">
-// Stateless footer notice
-</script>

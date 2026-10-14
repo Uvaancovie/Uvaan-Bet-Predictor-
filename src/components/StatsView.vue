@@ -1,12 +1,18 @@
 <template>
-  <div class="space-y-6 max-w-5xl mx-auto">
+  <div class="space-y-6">
+    <PageHeader
+      eyebrow="Calibration"
+      title="Track record"
+      description="Hit rate, Brier score, and flat-stake return from picks settled in this app."
+    />
+
     <!-- Notice: Local data / sample data disclaimer -->
-    <div class="bg-[#16181e] border border-[#262a34] rounded-xl p-3.5 flex items-center justify-between gap-3 text-xs text-[#9aa1b2]">
+    <div class="bg-[#111722] border border-[#243044] rounded-xl p-3.5 flex items-center justify-between gap-3 text-xs text-[#93a0b8]">
       <div>
-        <span class="text-[#f1f3f7] font-medium">Local data only. Not a verified track record.</span>
-        <span class="block sm:inline sm:ml-1 text-[#656c7d]">All figures calculated from local browser storage.</span>
+        <span class="text-[#eef3fb] font-medium">Local data only. Not a verified track record.</span>
+        <span class="block sm:inline sm:ml-1 text-[#64748b]">All figures calculated from local browser storage.</span>
       </div>
-      <span class="text-[11px] font-mono text-[#9aa1b2] px-2 py-0.5 rounded bg-[#0f1115] border border-[#262a34]">
+      <span class="text-[11px] font-mono text-[#93a0b8] px-2 py-0.5 rounded bg-[#0b0f16] border border-[#243044]">
         sample data
       </span>
     </div>
@@ -14,45 +20,45 @@
     <!-- Four Top Cards: Hit rate, Brier score, Flat-stake ROI, Pending -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       <!-- 1. Hit Rate -->
-      <div class="bg-[#16181e] border border-[#262a34] rounded-xl p-4 space-y-1">
-        <div class="text-xs text-[#9aa1b2]">Hit rate</div>
-        <div class="text-xl sm:text-2xl font-medium text-[#f1f3f7] font-mono tabular-nums">
+      <div class="bg-[#111722] border border-[#243044] rounded-xl p-4 space-y-1">
+        <div class="text-xs text-[#93a0b8]">Hit rate</div>
+        <div class="text-xl sm:text-2xl font-medium text-[#eef3fb] font-mono tabular-nums">
           {{ hitRatePercent }}
         </div>
-        <div class="text-[11px] text-[#656c7d] font-mono">
+        <div class="text-[11px] text-[#64748b] font-mono">
           n = {{ sampleSize }} settled (sample data)
         </div>
       </div>
 
       <!-- 2. Brier Score -->
-      <div class="bg-[#16181e] border border-[#262a34] rounded-xl p-4 space-y-1">
-        <div class="text-xs text-[#9aa1b2]">Brier score</div>
-        <div class="text-xl sm:text-2xl font-medium text-[#f1f3f7] font-mono tabular-nums">
+      <div class="bg-[#111722] border border-[#243044] rounded-xl p-4 space-y-1">
+        <div class="text-xs text-[#93a0b8]">Brier score</div>
+        <div class="text-xl sm:text-2xl font-medium text-[#eef3fb] font-mono tabular-nums">
           {{ meanBrierScore }}
         </div>
-        <div class="text-[11px] text-[#656c7d] font-mono">
+        <div class="text-[11px] text-[#64748b] font-mono">
           n = {{ sampleSize }} settled (sample data)
         </div>
       </div>
 
       <!-- 3. Flat-stake ROI -->
-      <div class="bg-[#16181e] border border-[#262a34] rounded-xl p-4 space-y-1">
-        <div class="text-xs text-[#9aa1b2]">Flat-stake ROI</div>
+      <div class="bg-[#111722] border border-[#243044] rounded-xl p-4 space-y-1">
+        <div class="text-xs text-[#93a0b8]">Flat-stake ROI</div>
         <div :class="['text-xl sm:text-2xl font-medium font-mono tabular-nums', roiValue >= 0 ? 'text-[#38bdf8]' : 'text-[#94a3b8]']">
           {{ roiFormatted }}
         </div>
-        <div class="text-[11px] text-[#656c7d] font-mono">
+        <div class="text-[11px] text-[#64748b] font-mono">
           n = {{ sampleSize }} settled (sample data)
         </div>
       </div>
 
       <!-- 4. Pending -->
-      <div class="bg-[#16181e] border border-[#262a34] rounded-xl p-4 space-y-1">
-        <div class="text-xs text-[#9aa1b2]">Pending matches</div>
-        <div class="text-xl sm:text-2xl font-medium text-[#f1f3f7] font-mono tabular-nums">
+      <div class="bg-[#111722] border border-[#243044] rounded-xl p-4 space-y-1">
+        <div class="text-xs text-[#93a0b8]">Pending matches</div>
+        <div class="text-xl sm:text-2xl font-medium text-[#eef3fb] font-mono tabular-nums">
           {{ store.pendingPredictions.length }}
         </div>
-        <div class="text-[11px] text-[#656c7d] font-mono">
+        <div class="text-[11px] text-[#64748b] font-mono">
           n = {{ store.pendingPredictions.length }} awaiting kickoff
         </div>
       </div>
@@ -61,13 +67,13 @@
     <!-- Charts Container: Calibration Chart & ROI Curve with visible losing stretches -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <!-- Calibration Chart (Chart.js) -->
-      <div class="bg-[#16181e] border border-[#262a34] rounded-xl p-4 space-y-3">
-        <div class="flex items-center justify-between border-b border-[#262a34] pb-2">
+      <div class="bg-[#111722] border border-[#243044] rounded-xl p-4 space-y-3">
+        <div class="flex items-center justify-between border-b border-[#243044] pb-2">
           <div>
-            <h2 class="text-xs font-medium text-[#f1f3f7]">Calibration Curve</h2>
-            <div class="text-[10px] text-[#656c7d] font-mono">n = {{ sampleSize }} settled (sample data)</div>
+            <h2 class="text-xs font-medium text-[#eef3fb]">Calibration Curve</h2>
+            <div class="text-[10px] text-[#64748b] font-mono">n = {{ sampleSize }} settled (sample data)</div>
           </div>
-          <div class="flex items-center gap-3 text-[10px] text-[#9aa1b2]">
+          <div class="flex items-center gap-3 text-[10px] text-[#93a0b8]">
             <span class="flex items-center gap-1">
               <span class="w-2.5 h-0.5 bg-[#3b82f6]"></span> Model
             </span>
@@ -81,19 +87,19 @@
           <canvas ref="calibrationCanvas"></canvas>
         </div>
 
-        <div class="text-[11px] text-[#9aa1b2] leading-relaxed pt-1">
+        <div class="text-[11px] text-[#93a0b8] leading-relaxed pt-1">
           Observed hit rate across 10 probability buckets vs diagonal calibration line.
         </div>
       </div>
 
       <!-- Cumulative ROI Curve (Chart.js) with losing stretches clearly visible -->
-      <div class="bg-[#16181e] border border-[#262a34] rounded-xl p-4 space-y-3">
-        <div class="flex items-center justify-between border-b border-[#262a34] pb-2">
+      <div class="bg-[#111722] border border-[#243044] rounded-xl p-4 space-y-3">
+        <div class="flex items-center justify-between border-b border-[#243044] pb-2">
           <div>
-            <h2 class="text-xs font-medium text-[#f1f3f7]">Cumulative Return Curve (1-unit flat)</h2>
-            <div class="text-[10px] text-[#656c7d] font-mono">n = {{ sampleSize }} settled (sample data)</div>
+            <h2 class="text-xs font-medium text-[#eef3fb]">Cumulative Return Curve (1-unit flat)</h2>
+            <div class="text-[10px] text-[#64748b] font-mono">n = {{ sampleSize }} settled (sample data)</div>
           </div>
-          <div class="text-[10px] text-[#9aa1b2] font-mono">
+          <div class="text-[10px] text-[#93a0b8] font-mono">
             Net: <strong :class="totalPnlUnits >= 0 ? 'text-[#38bdf8]' : 'text-[#94a3b8]'">{{ totalPnlUnits >= 0 ? '+' : '' }}{{ totalPnlUnits.toFixed(2) }} u</strong>
           </div>
         </div>
@@ -102,23 +108,23 @@
           <canvas ref="roiCanvas"></canvas>
         </div>
 
-        <div class="text-[11px] text-[#9aa1b2] leading-relaxed pt-1">
+        <div class="text-[11px] text-[#93a0b8] leading-relaxed pt-1">
           Downswings and drawdown periods represent normal mathematical variance under flat staking.
         </div>
       </div>
     </div>
 
     <!-- 10 Probability Buckets Matrix -->
-    <div class="bg-[#16181e] border border-[#262a34] rounded-xl p-4 space-y-3">
-      <div class="flex items-center justify-between border-b border-[#262a34] pb-2">
-        <h3 class="text-xs font-medium text-[#f1f3f7]">Calibration Buckets Breakdown</h3>
-        <span class="text-[10px] text-[#656c7d] font-mono">n = {{ sampleSize }} settled (sample data)</span>
+    <div class="bg-[#111722] border border-[#243044] rounded-xl p-4 space-y-3">
+      <div class="flex items-center justify-between border-b border-[#243044] pb-2">
+        <h3 class="text-xs font-medium text-[#eef3fb]">Calibration Buckets Breakdown</h3>
+        <span class="text-[10px] text-[#64748b] font-mono">n = {{ sampleSize }} settled (sample data)</span>
       </div>
 
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs font-mono tabular-nums">
           <thead>
-            <tr class="text-[10px] text-[#656c7d] uppercase border-b border-[#262a34]">
+            <tr class="text-[10px] text-[#64748b] uppercase border-b border-[#243044]">
               <th class="py-1.5 font-normal">Bucket</th>
               <th class="py-1.5 text-right font-normal">Count (n)</th>
               <th class="py-1.5 text-right font-normal">Pred Avg</th>
@@ -126,19 +132,19 @@
               <th class="py-1.5 text-right font-normal">Calibration Gap</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-[#262a34]/40">
+          <tbody class="divide-y divide-[#243044]/40">
             <tr v-for="b in bucketsData" :key="b.bucketIndex">
-              <td class="py-2 text-[#9aa1b2] font-sans">{{ b.label }}</td>
-              <td class="py-2 text-right text-[#f1f3f7]">{{ b.count }}</td>
-              <td class="py-2 text-right text-[#9aa1b2]">{{ (b.predictedAverage * 100).toFixed(1) }}%</td>
-              <td class="py-2 text-right text-[#f1f3f7]">
+              <td class="py-2 text-[#93a0b8] font-sans">{{ b.label }}</td>
+              <td class="py-2 text-right text-[#eef3fb]">{{ b.count }}</td>
+              <td class="py-2 text-right text-[#93a0b8]">{{ (b.predictedAverage * 100).toFixed(1) }}%</td>
+              <td class="py-2 text-right text-[#eef3fb]">
                 {{ b.count > 0 ? (b.actualHitRate * 100).toFixed(1) + '%' : '—' }}
               </td>
               <td class="py-2 text-right">
                 <span v-if="b.count > 0" :class="Math.abs(b.diff) <= 0.05 ? 'text-[#38bdf8]' : 'text-[#94a3b8]'">
                   {{ b.diff > 0 ? '+' : '' }}{{ (b.diff * 100).toFixed(1) }}%
                 </span>
-                <span v-else class="text-[#656c7d]">—</span>
+                <span v-else class="text-[#64748b]">—</span>
               </td>
             </tr>
           </tbody>
@@ -151,6 +157,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import { useOddsStore } from '@/stores/oddsStore';
+import PageHeader from './PageHeader.vue';
 import { flatRoi, calibrationBuckets } from '@/lib/odds';
 import { Chart, registerables } from 'chart.js';
 
@@ -249,10 +256,10 @@ function initCharts() {
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: '#16181e',
-            titleColor: '#f1f3f7',
-            bodyColor: '#9aa1b2',
-            borderColor: '#262a34',
+            backgroundColor: '#111722',
+            titleColor: '#eef3fb',
+            bodyColor: '#93a0b8',
+            borderColor: '#243044',
             borderWidth: 1,
             callbacks: {
               label(context) {
@@ -264,14 +271,14 @@ function initCharts() {
         scales: {
           x: {
             grid: { color: '#1e222b' },
-            ticks: { color: '#656c7d', font: { size: 9, family: 'sans-serif' } },
+            ticks: { color: '#64748b', font: { size: 9, family: 'sans-serif' } },
           },
           y: {
             min: 0,
             max: 100,
             grid: { color: '#1e222b' },
             ticks: {
-              color: '#656c7d',
+              color: '#64748b',
               font: { size: 9, family: 'sans-serif' },
               callback(val) {
                 return `${val}%`;
@@ -320,10 +327,10 @@ function initCharts() {
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: '#16181e',
-            titleColor: '#f1f3f7',
-            bodyColor: '#9aa1b2',
-            borderColor: '#262a34',
+            backgroundColor: '#111722',
+            titleColor: '#eef3fb',
+            bodyColor: '#93a0b8',
+            borderColor: '#243044',
             borderWidth: 1,
             callbacks: {
               label(context) {
@@ -335,12 +342,12 @@ function initCharts() {
         scales: {
           x: {
             grid: { color: '#1e222b' },
-            ticks: { color: '#656c7d', font: { size: 9, family: 'sans-serif' } },
+            ticks: { color: '#64748b', font: { size: 9, family: 'sans-serif' } },
           },
           y: {
             grid: { color: '#1e222b' },
             ticks: {
-              color: '#656c7d',
+              color: '#64748b',
               font: { size: 9, family: 'sans-serif' },
               callback(val) {
                 return `${val} u`;

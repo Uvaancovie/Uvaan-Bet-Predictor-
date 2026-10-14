@@ -63,6 +63,19 @@ export interface PredictionRecord {
   brierScore?: number;
 }
 
+export interface SlipLeg {
+  matchId: string;
+  homeTeam: string;
+  awayTeam: string;
+  league: string;
+  kickoff: string;
+  outcome: OutcomeType;
+  odds: number; // integer cents e.g. 210
+  modelProb: number; // 0-1 model probability for the selected outcome
+  fairProb: number; // 0-1 devigged market probability
+  edge: number; // modelProb - fairProb
+}
+
 export interface PriceAlert {
   id: string;
   matchId: string;

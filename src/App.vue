@@ -1,10 +1,15 @@
 <template>
-  <div class="min-h-screen bg-[#0f1115] text-[#f1f3f7] flex flex-col antialiased">
-    <!-- Header -->
+  <div class="flex min-h-screen flex-col bg-app text-ink antialiased">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-3 focus:py-2"
+    >
+      Skip to content
+    </a>
+
     <NavigationHeader />
 
-    <!-- Main Content -->
-    <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 pb-12">
+    <main id="main" class="mx-auto w-full max-w-6xl flex-1 px-4 py-6 pb-16 sm:px-6">
       <UpcomingMatchesView v-if="store.activeTab === 'upcoming'" />
       <AnalyzerView v-else-if="store.activeTab === 'analyzer'" />
       <PredictionsLogView v-else-if="store.activeTab === 'log'" />
@@ -12,18 +17,39 @@
       <MethodView v-else-if="store.activeTab === 'method'" />
     </main>
 
-    <!-- Always visible 18+ and Responsible Gambling footer strip -->
     <ResponsibleGamblingBanner />
 
-    <!-- Clean toast notification -->
+    <!-- Global bet-slip simulator entry point -->
+    <button
+      type="button"
+      @click="store.openSlip()"
+      class="fixed bottom-6 left-4 z-40 inline-flex min-h-11 items-center gap-2 rounded-xl border border-accent/40 bg-raised px-4 text-xs font-semibold text-accent shadow-lg shadow-black/40 transition hover:bg-accent/10"
+      aria-label="Open bet slip simulator"
+    >
+      <span aria-hidden="true">🎲</span>
+      <span>Simulate slip</span>
+      <span
+        v-if="store.slipLegs.length > 0"
+        class="rounded-md bg-accent px-1.5 py-0.5 font-mono text-[10px] font-bold text-app"
+      >
+        {{ store.slipLegs.length }}
+      </span>
+    </button>
+
+    <BetSlipSimulatorModal />
+
     <div
       v-if="store.toastMessage"
-      class="fixed bottom-12 right-4 z-50 max-w-sm px-3.5 py-2.5 rounded-lg bg-[#1c1f26] border border-[#323744] text-xs text-[#f1f3f7] flex items-center justify-between gap-3 shadow-none"
+      role="status"
+      class="toast-in fixed bottom-6 right-4 z-50 flex max-w-sm items-start gap-3 rounded-xl border border-line-strong bg-raised px-3.5 py-3 text-sm text-ink shadow-lg shadow-black/40"
     >
-      <span>{{ store.toastMessage }}</span>
+      <span class="mt-0.5 h-4 w-0.5 shrink-0 rounded-full bg-accent" aria-hidden="true"></span>
+      <span class="leading-snug">{{ store.toastMessage }}</span>
       <button
+        type="button"
         @click="store.toastMessage = null"
-        class="text-[#9aa1b2] hover:text-[#f1f3f7]"
+        class="ml-auto text-muted hover:text-ink"
+        aria-label="Dismiss notification"
       >
         ✕
       </button>
@@ -41,6 +67,7 @@ import AnalyzerView from '@/components/AnalyzerView.vue';
 import PredictionsLogView from '@/components/PredictionsLogView.vue';
 import StatsView from '@/components/StatsView.vue';
 import MethodView from '@/components/MethodView.vue';
+import BetSlipSimulatorModal from '@/components/BetSlipSimulatorModal.vue';
 
 const store = useOddsStore();
 

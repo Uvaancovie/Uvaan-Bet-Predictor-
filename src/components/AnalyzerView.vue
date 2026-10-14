@@ -1,9 +1,15 @@
 <template>
-  <div class="space-y-5 max-w-5xl mx-auto">
+  <div class="space-y-5">
+    <PageHeader
+      eyebrow="Workspace"
+      title="Analyzer"
+      description="Remove the bookmaker margin, compare a model probability with the market, and lock a pick before kickoff."
+    />
+
     <!-- Top Area: Live Odds Status & Competition Selector Bar -->
-    <div class="bg-[#16181e] border border-[#262a34] rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+    <div class="bg-[#111722] border border-[#243044] rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
       <div class="flex items-center gap-2 flex-wrap">
-        <span class="text-[#9aa1b2] font-medium">Competition:</span>
+        <span class="text-[#93a0b8] font-medium">Competition:</span>
         <div class="flex gap-1 overflow-x-auto">
           <button
             v-for="sport in SPORTS_CONFIG"
@@ -12,8 +18,8 @@
             :class="[
               'px-2.5 py-1 rounded-lg text-xs font-medium transition whitespace-nowrap',
               store.selectedLeague === sport.key
-                ? 'bg-[#222632] text-[#f1f3f7] border border-[#323744]'
-                : 'text-[#9aa1b2] hover:text-[#f1f3f7] hover:bg-[#1c1f26]'
+                ? 'bg-[#1c2738] text-[#eef3fb] border border-[#33445c]'
+                : 'text-[#93a0b8] hover:text-[#eef3fb] hover:bg-[#171e2c]'
             ]"
           >
             {{ sport.label }}
@@ -21,13 +27,13 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-3 text-[11px] font-mono text-[#9aa1b2] self-start sm:self-center">
+      <div class="flex items-center gap-3 text-[11px] font-mono text-[#93a0b8] self-start sm:self-center">
         <!-- Quota shield status -->
-        <span v-if="store.requestsRemaining !== null" class="hidden md:inline text-[#656c7d]">
-          Quota: <strong class="text-[#f1f3f7]">{{ store.requestsRemaining }}</strong>/500 left
+        <span v-if="store.requestsRemaining !== null" class="hidden md:inline text-[#64748b]">
+          Quota: <strong class="text-[#eef3fb]">{{ store.requestsRemaining }}</strong>/500 left
         </span>
 
-        <span v-if="store.lastLiveFetchedAt" class="text-[10px] text-[#656c7d]">
+        <span v-if="store.lastLiveFetchedAt" class="text-[10px] text-[#64748b]">
           {{ store.isLiveCached ? 'Cached (0 quota)' : 'Live API' }}
         </span>
 
@@ -35,7 +41,7 @@
         <button
           @click="store.loadLiveOdds(store.selectedLeague, true)"
           :disabled="store.isLiveLoading"
-          class="px-2.5 py-1 text-xs text-[#9aa1b2] hover:text-[#f1f3f7] bg-[#1c1f26] hover:bg-[#222632] border border-[#262a34] rounded-lg transition flex items-center gap-1.5 disabled:opacity-40"
+          class="px-2.5 py-1 text-xs text-[#93a0b8] hover:text-[#eef3fb] bg-[#171e2c] hover:bg-[#1c2738] border border-[#243044] rounded-lg transition flex items-center gap-1.5 disabled:opacity-40"
           title="Force fresh API fetch"
         >
           <span :class="store.isLiveLoading ? 'animate-spin' : ''">↻</span>
@@ -45,15 +51,15 @@
     </div>
 
     <!-- Paste Box (Main Action per rule) -->
-    <section class="bg-[#16181e] border border-[#262a34] rounded-xl p-4">
+    <section class="bg-[#111722] border border-[#243044] rounded-xl p-4">
       <div class="flex items-center justify-between mb-2">
-        <label class="text-xs font-medium text-[#f1f3f7]">
+        <label class="text-xs font-medium text-[#eef3fb]">
           Paste custom slate (one match per line)
         </label>
         <button
           type="button"
           @click="showManualForm = !showManualForm"
-          class="text-xs text-[#9aa1b2] hover:text-[#f1f3f7] underline"
+          class="text-xs text-[#93a0b8] hover:text-[#eef3fb] underline"
         >
           {{ showManualForm ? 'Hide manual form' : 'Or enter single match manually' }}
         </button>
@@ -63,7 +69,7 @@
         v-model="slateInput"
         rows="2"
         placeholder="Sundowns v Pirates | PSL | 2026-10-18T15:30 | 210 340 360"
-        class="w-full bg-[#0f1115] border border-[#262a34] rounded-lg p-2.5 text-xs font-mono text-[#f1f3f7] focus:outline-none focus:border-[#3b82f6] transition placeholder-[#656c7d]"
+        class="w-full bg-[#0b0f16] border border-[#243044] rounded-lg p-2.5 text-xs font-mono text-[#eef3fb] focus:outline-none focus:border-[#00f5ff] transition placeholder-[#64748b]"
       ></textarea>
 
       <div class="mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
@@ -72,91 +78,91 @@
             type="button"
             @click="handleParseSlate"
             :disabled="!slateInput.trim()"
-            class="px-4 py-1.5 text-xs font-medium text-white bg-[#3b82f6] hover:bg-[#2563eb] disabled:opacity-40 disabled:cursor-not-allowed rounded-lg transition"
+            class="px-4 py-1.5 text-xs font-medium text-[#041016] bg-[#00f5ff] hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg transition"
           >
             Parse slate
           </button>
           <button
             type="button"
             @click="loadSamplePsl"
-            class="px-3 py-1.5 text-xs text-[#9aa1b2] hover:text-[#f1f3f7] bg-[#1c1f26] border border-[#262a34] rounded-lg transition"
+            class="px-3 py-1.5 text-xs text-[#93a0b8] hover:text-[#eef3fb] bg-[#171e2c] border border-[#243044] rounded-lg transition"
           >
             Load sample PSL
           </button>
         </div>
 
-        <div class="text-[11px] text-[#9aa1b2] font-mono">
-          Format: <span class="text-[#f1f3f7]">Home v Away | league | kickoff | H D A</span> (210 = 2.10)
+        <div class="text-[11px] text-[#93a0b8] font-mono">
+          Format: <span class="text-[#eef3fb]">Home v Away | league | kickoff | H D A</span> (210 = 2.10)
         </div>
       </div>
 
       <!-- Collapsible Manual Form -->
-      <div v-if="showManualForm" class="mt-4 pt-4 border-t border-[#262a34] space-y-3">
-        <div class="text-xs font-medium text-[#f1f3f7]">Manual Single Match Entry</div>
+      <div v-if="showManualForm" class="mt-4 pt-4 border-t border-[#243044] space-y-3">
+        <div class="text-xs font-medium text-[#eef3fb]">Manual Single Match Entry</div>
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5 text-xs">
           <div>
-            <label class="block text-[11px] text-[#9aa1b2] mb-1">Home Team</label>
+            <label class="block text-[11px] text-[#93a0b8] mb-1">Home Team</label>
             <input
               v-model="manualHome"
               type="text"
               placeholder="Sundowns"
-              class="w-full bg-[#0f1115] border border-[#262a34] rounded-lg px-2.5 py-1.5 text-xs text-[#f1f3f7] focus:outline-none focus:border-[#3b82f6]"
+              class="w-full bg-[#0b0f16] border border-[#243044] rounded-lg px-2.5 py-1.5 text-xs text-[#eef3fb] focus:outline-none focus:border-[#00f5ff]"
             />
           </div>
           <div>
-            <label class="block text-[11px] text-[#9aa1b2] mb-1">Away Team</label>
+            <label class="block text-[11px] text-[#93a0b8] mb-1">Away Team</label>
             <input
               v-model="manualAway"
               type="text"
               placeholder="Pirates"
-              class="w-full bg-[#0f1115] border border-[#262a34] rounded-lg px-2.5 py-1.5 text-xs text-[#f1f3f7] focus:outline-none focus:border-[#3b82f6]"
+              class="w-full bg-[#0b0f16] border border-[#243044] rounded-lg px-2.5 py-1.5 text-xs text-[#eef3fb] focus:outline-none focus:border-[#00f5ff]"
             />
           </div>
           <div>
-            <label class="block text-[11px] text-[#9aa1b2] mb-1">League</label>
+            <label class="block text-[11px] text-[#93a0b8] mb-1">League</label>
             <input
               v-model="manualLeague"
               type="text"
               placeholder="PSL"
-              class="w-full bg-[#0f1115] border border-[#262a34] rounded-lg px-2.5 py-1.5 text-xs text-[#f1f3f7] focus:outline-none focus:border-[#3b82f6]"
+              class="w-full bg-[#0b0f16] border border-[#243044] rounded-lg px-2.5 py-1.5 text-xs text-[#eef3fb] focus:outline-none focus:border-[#00f5ff]"
             />
           </div>
           <div>
-            <label class="block text-[11px] text-[#9aa1b2] mb-1">Kickoff</label>
+            <label class="block text-[11px] text-[#93a0b8] mb-1">Kickoff</label>
             <input
               v-model="manualKickoff"
               type="datetime-local"
-              class="w-full bg-[#0f1115] border border-[#262a34] rounded-lg px-2.5 py-1.5 text-xs text-[#f1f3f7] font-mono focus:outline-none focus:border-[#3b82f6]"
+              class="w-full bg-[#0b0f16] border border-[#243044] rounded-lg px-2.5 py-1.5 text-xs text-[#eef3fb] font-mono focus:outline-none focus:border-[#00f5ff]"
             />
           </div>
         </div>
 
         <div class="grid grid-cols-3 gap-2.5 text-xs">
           <div>
-            <label class="block text-[11px] text-[#9aa1b2] mb-1">Home Odds (x100)</label>
+            <label class="block text-[11px] text-[#93a0b8] mb-1">Home Odds (x100)</label>
             <input
               v-model.number="manualHomeOdds"
               type="number"
               placeholder="210"
-              class="w-full bg-[#0f1115] border border-[#262a34] rounded-lg px-2.5 py-1.5 text-xs font-mono text-[#f1f3f7] focus:outline-none focus:border-[#3b82f6]"
+              class="w-full bg-[#0b0f16] border border-[#243044] rounded-lg px-2.5 py-1.5 text-xs font-mono text-[#eef3fb] focus:outline-none focus:border-[#00f5ff]"
             />
           </div>
           <div>
-            <label class="block text-[11px] text-[#9aa1b2] mb-1">Draw Odds (x100)</label>
+            <label class="block text-[11px] text-[#93a0b8] mb-1">Draw Odds (x100)</label>
             <input
               v-model.number="manualDrawOdds"
               type="number"
               placeholder="340"
-              class="w-full bg-[#0f1115] border border-[#262a34] rounded-lg px-2.5 py-1.5 text-xs font-mono text-[#f1f3f7] focus:outline-none focus:border-[#3b82f6]"
+              class="w-full bg-[#0b0f16] border border-[#243044] rounded-lg px-2.5 py-1.5 text-xs font-mono text-[#eef3fb] focus:outline-none focus:border-[#00f5ff]"
             />
           </div>
           <div>
-            <label class="block text-[11px] text-[#9aa1b2] mb-1">Away Odds (x100)</label>
+            <label class="block text-[11px] text-[#93a0b8] mb-1">Away Odds (x100)</label>
             <input
               v-model.number="manualAwayOdds"
               type="number"
               placeholder="360"
-              class="w-full bg-[#0f1115] border border-[#262a34] rounded-lg px-2.5 py-1.5 text-xs font-mono text-[#f1f3f7] focus:outline-none focus:border-[#3b82f6]"
+              class="w-full bg-[#0b0f16] border border-[#243044] rounded-lg px-2.5 py-1.5 text-xs font-mono text-[#eef3fb] focus:outline-none focus:border-[#00f5ff]"
             />
           </div>
         </div>
@@ -165,7 +171,7 @@
           <button
             type="button"
             @click="handleManualAdd"
-            class="px-3.5 py-1.5 text-xs font-medium text-white bg-[#3b82f6] hover:bg-[#2563eb] rounded-lg transition"
+            class="px-3.5 py-1.5 text-xs font-medium text-[#041016] bg-[#00f5ff] hover:brightness-110 rounded-lg transition"
           >
             Add match
           </button>
@@ -176,7 +182,7 @@
     <!-- Empty state -->
     <div
       v-if="store.matches.length === 0"
-      class="bg-[#16181e] border border-[#262a34] rounded-xl p-8 text-center text-xs text-[#9aa1b2]"
+      class="bg-[#111722] border border-[#243044] rounded-xl p-8 text-center text-xs text-[#93a0b8]"
     >
       No fixtures loaded. Select a competition above or paste custom matches.
     </div>
@@ -186,14 +192,20 @@
       <div
         v-for="match in store.matches"
         :key="match.id"
-        class="bg-[#16181e] border border-[#262a34] rounded-xl p-4 sm:p-5 space-y-4"
+        :data-match-id="match.id"
+        :class="[
+          'scroll-mt-28 rounded-xl border p-4 sm:p-5 space-y-4 transition',
+          store.focusedMatchId === match.id
+            ? 'border-[#00f5ff] bg-[#111722] ring-2 ring-[#00f5ff]/45'
+            : 'bg-[#111722] border-[#243044]'
+        ]"
       >
         <!-- Card Header: Teams, League, Crests, Kickoff on left | Margin & Stats on right -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#262a34] pb-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#243044] pb-3">
           <div class="flex items-center gap-3">
             <!-- Crests pair -->
             <div class="flex items-center -space-x-1.5">
-              <div class="w-7 h-7 rounded-full bg-[#0f1115] border border-[#262a34] p-1 flex items-center justify-center overflow-hidden z-10">
+              <div class="w-7 h-7 rounded-full bg-[#0b0f16] border border-[#243044] p-1 flex items-center justify-center overflow-hidden z-10">
                 <img
                   v-if="getCrest(match.homeTeam)"
                   :src="getCrest(match.homeTeam)"
@@ -205,7 +217,7 @@
                   {{ match.homeTeam.slice(0, 2).toUpperCase() }}
                 </span>
               </div>
-              <div class="w-7 h-7 rounded-full bg-[#0f1115] border border-[#262a34] p-1 flex items-center justify-center overflow-hidden">
+              <div class="w-7 h-7 rounded-full bg-[#0b0f16] border border-[#243044] p-1 flex items-center justify-center overflow-hidden">
                 <img
                   v-if="getCrest(match.awayTeam)"
                   :src="getCrest(match.awayTeam)"
@@ -221,14 +233,14 @@
 
             <div>
               <div class="flex items-center gap-2 flex-wrap">
-                <h2 class="text-sm sm:text-base font-medium text-[#f1f3f7]">
-                  {{ match.homeTeam }} <span class="text-[#656c7d]">v</span> {{ match.awayTeam }}
+                <h2 class="text-sm sm:text-base font-medium text-[#eef3fb]">
+                  {{ match.homeTeam }} <span class="text-[#64748b]">v</span> {{ match.awayTeam }}
                 </h2>
-                <span class="text-[11px] text-[#9aa1b2] font-mono">
+                <span class="text-[11px] text-[#93a0b8] font-mono">
                   ({{ match.league }})
                 </span>
               </div>
-              <div class="text-[11px] text-[#656c7d] font-mono mt-0.5">
+              <div class="text-[11px] text-[#64748b] font-mono mt-0.5">
                 Kickoff: {{ formatKickoff(match.kickoff) }}
                 <span v-if="isKickoffPassed(match.kickoff)" class="text-[#f87171] ml-1">
                   (Locked)
@@ -240,8 +252,8 @@
           <div class="flex items-center gap-3 self-start sm:self-center">
             <!-- Bookmaker margin on the right -->
             <div class="text-xs font-mono text-right">
-              <span class="text-[#9aa1b2] text-[11px] mr-1">Margin:</span>
-              <span class="text-[#f1f3f7] font-medium">
+              <span class="text-[#93a0b8] text-[11px] mr-1">Margin:</span>
+              <span class="text-[#eef3fb] font-medium">
                 {{ getMatchEval(match).marginPercent.toFixed(1) }}%
               </span>
             </div>
@@ -249,7 +261,7 @@
             <!-- View Stats & H2H Modal button -->
             <button
               @click="openStats(match)"
-              class="px-2.5 py-1 text-xs text-[#9aa1b2] hover:text-[#f1f3f7] bg-[#1c1f26] hover:bg-[#222632] border border-[#262a34] rounded-lg transition"
+              class="px-2.5 py-1 text-xs text-[#93a0b8] hover:text-[#eef3fb] bg-[#171e2c] hover:bg-[#1c2738] border border-[#243044] rounded-lg transition"
             >
               Stats & H2H
             </button>
@@ -257,7 +269,7 @@
             <!-- Remove match button -->
             <button
               @click="store.removeMatch(match.id)"
-              class="text-[#656c7d] hover:text-[#f87171] text-xs p-1 rounded transition"
+              class="text-[#64748b] hover:text-[#f87171] text-xs p-1 rounded transition"
               title="Remove fixture"
             >
               ✕
@@ -266,9 +278,9 @@
         </div>
 
         <!-- Stacked Probability Bars: Market above model (teal, grey, coral) -->
-        <div class="bg-[#0f1115] p-3 rounded-lg border border-[#262a34]">
-          <div class="flex items-center justify-between text-[11px] text-[#9aa1b2] mb-1.5">
-            <span class="font-medium text-[#f1f3f7]">Probability Distribution</span>
+        <div class="bg-[#0b0f16] p-3 rounded-lg border border-[#243044]">
+          <div class="flex items-center justify-between text-[11px] text-[#93a0b8] mb-1.5">
+            <span class="font-medium text-[#eef3fb]">Probability Distribution</span>
             <div class="flex items-center gap-3 text-[10px]">
               <span class="flex items-center gap-1">
                 <span class="w-2 h-2 rounded-xs bg-[#0d9488]"></span> Home
@@ -293,7 +305,7 @@
         <div class="hidden sm:block overflow-x-auto">
           <table class="w-full text-left border-collapse text-xs">
             <thead>
-              <tr class="text-[#9aa1b2] border-b border-[#262a34] text-[11px]">
+              <tr class="text-[#93a0b8] border-b border-[#243044] text-[11px]">
                 <th class="py-2 px-2 font-normal">Outcome</th>
                 <th class="py-2 px-2 text-right font-normal">Odds</th>
                 <th class="py-2 px-2 text-right font-normal">Market Prob</th>
@@ -302,91 +314,118 @@
                 <th class="py-2 px-2 text-right font-normal">Action</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-[#262a34]/60 tabular-nums">
+            <tbody class="divide-y divide-[#243044]/60 tabular-nums">
               <!-- Home -->
               <tr>
-                <td class="py-2.5 px-2 font-medium text-[#f1f3f7] flex items-center gap-1.5">
+                <td class="py-2.5 px-2 font-medium text-[#eef3fb] flex items-center gap-1.5">
                   <span class="w-2 h-2 rounded-xs bg-[#0d9488]"></span>
                   <span>{{ match.homeTeam }} (1)</span>
                 </td>
-                <td class="py-2.5 px-2 text-right font-mono text-[#f1f3f7]">
+                <td class="py-2.5 px-2 text-right font-mono text-[#eef3fb]">
                   {{ (match.homeOdds / 100).toFixed(2) }}
                 </td>
-                <td class="py-2.5 px-2 text-right font-mono text-[#9aa1b2]">
+                <td class="py-2.5 px-2 text-right font-mono text-[#93a0b8]">
                   {{ (getMatchEval(match).fair[0] * 100).toFixed(1) }}%
                 </td>
-                <td class="py-2.5 px-2 text-right font-mono text-[#f1f3f7]">
+                <td class="py-2.5 px-2 text-right font-mono text-[#eef3fb]">
                   {{ (getMatchEval(match).model[0] * 100).toFixed(1) }}%
                 </td>
                 <td class="py-2.5 px-3">
                   <EdgeBar :edge="getMatchEval(match).edges[0]" />
                 </td>
                 <td class="py-2.5 px-2 text-right">
-                  <button
-                    @click="handleSavePrediction(match, 'home')"
-                    :disabled="isKickoffPassed(match.kickoff)"
-                    class="px-2.5 py-1 text-xs text-[#9aa1b2] hover:text-[#f1f3f7] hover:bg-[#1c1f26] border border-[#262a34] rounded-lg transition disabled:opacity-30 disabled:pointer-events-none"
-                  >
-                    Save
-                  </button>
+                  <div class="flex items-center justify-end gap-1.5">
+                    <button
+                      @click="store.addToSlip(match, 'home')"
+                      title="Add home to slip simulator"
+                      class="px-2.5 py-1 text-xs text-[#00f5ff] hover:bg-[#00f5ff]/10 border border-[#00f5ff]/30 rounded-lg transition"
+                    >
+                      ＋ Slip
+                    </button>
+                    <button
+                      @click="handleSavePrediction(match, 'home')"
+                      :disabled="isKickoffPassed(match.kickoff)"
+                      class="px-2.5 py-1 text-xs text-[#93a0b8] hover:text-[#eef3fb] hover:bg-[#171e2c] border border-[#243044] rounded-lg transition disabled:opacity-30 disabled:pointer-events-none"
+                    >
+                      Save
+                    </button>
+                  </div>
                 </td>
               </tr>
 
               <!-- Draw -->
               <tr>
-                <td class="py-2.5 px-2 font-medium text-[#f1f3f7] flex items-center gap-1.5">
+                <td class="py-2.5 px-2 font-medium text-[#eef3fb] flex items-center gap-1.5">
                   <span class="w-2 h-2 rounded-xs bg-[#64748b]"></span>
                   <span>Draw (X)</span>
                 </td>
-                <td class="py-2.5 px-2 text-right font-mono text-[#f1f3f7]">
+                <td class="py-2.5 px-2 text-right font-mono text-[#eef3fb]">
                   {{ (match.drawOdds / 100).toFixed(2) }}
                 </td>
-                <td class="py-2.5 px-2 text-right font-mono text-[#9aa1b2]">
+                <td class="py-2.5 px-2 text-right font-mono text-[#93a0b8]">
                   {{ (getMatchEval(match).fair[1] * 100).toFixed(1) }}%
                 </td>
-                <td class="py-2.5 px-2 text-right font-mono text-[#f1f3f7]">
+                <td class="py-2.5 px-2 text-right font-mono text-[#eef3fb]">
                   {{ (getMatchEval(match).model[1] * 100).toFixed(1) }}%
                 </td>
                 <td class="py-2.5 px-3">
                   <EdgeBar :edge="getMatchEval(match).edges[1]" />
                 </td>
                 <td class="py-2.5 px-2 text-right">
-                  <button
-                    @click="handleSavePrediction(match, 'draw')"
-                    :disabled="isKickoffPassed(match.kickoff)"
-                    class="px-2.5 py-1 text-xs text-[#9aa1b2] hover:text-[#f1f3f7] hover:bg-[#1c1f26] border border-[#262a34] rounded-lg transition disabled:opacity-30 disabled:pointer-events-none"
-                  >
-                    Save
-                  </button>
+                  <div class="flex items-center justify-end gap-1.5">
+                    <button
+                      @click="store.addToSlip(match, 'draw')"
+                      title="Add draw to slip simulator"
+                      class="px-2.5 py-1 text-xs text-[#00f5ff] hover:bg-[#00f5ff]/10 border border-[#00f5ff]/30 rounded-lg transition"
+                    >
+                      ＋ Slip
+                    </button>
+                    <button
+                      @click="handleSavePrediction(match, 'draw')"
+                      :disabled="isKickoffPassed(match.kickoff)"
+                      class="px-2.5 py-1 text-xs text-[#93a0b8] hover:text-[#eef3fb] hover:bg-[#171e2c] border border-[#243044] rounded-lg transition disabled:opacity-30 disabled:pointer-events-none"
+                    >
+                      Save
+                    </button>
+                  </div>
                 </td>
               </tr>
 
               <!-- Away -->
               <tr>
-                <td class="py-2.5 px-2 font-medium text-[#f1f3f7] flex items-center gap-1.5">
+                <td class="py-2.5 px-2 font-medium text-[#eef3fb] flex items-center gap-1.5">
                   <span class="w-2 h-2 rounded-xs bg-[#e11d48]"></span>
                   <span>{{ match.awayTeam }} (2)</span>
                 </td>
-                <td class="py-2.5 px-2 text-right font-mono text-[#f1f3f7]">
+                <td class="py-2.5 px-2 text-right font-mono text-[#eef3fb]">
                   {{ (match.awayOdds / 100).toFixed(2) }}
                 </td>
-                <td class="py-2.5 px-2 text-right font-mono text-[#9aa1b2]">
+                <td class="py-2.5 px-2 text-right font-mono text-[#93a0b8]">
                   {{ (getMatchEval(match).fair[2] * 100).toFixed(1) }}%
                 </td>
-                <td class="py-2.5 px-2 text-right font-mono text-[#f1f3f7]">
+                <td class="py-2.5 px-2 text-right font-mono text-[#eef3fb]">
                   {{ (getMatchEval(match).model[2] * 100).toFixed(1) }}%
                 </td>
                 <td class="py-2.5 px-3">
                   <EdgeBar :edge="getMatchEval(match).edges[2]" />
                 </td>
                 <td class="py-2.5 px-2 text-right">
-                  <button
-                    @click="handleSavePrediction(match, 'away')"
-                    :disabled="isKickoffPassed(match.kickoff)"
-                    class="px-2.5 py-1 text-xs text-[#9aa1b2] hover:text-[#f1f3f7] hover:bg-[#1c1f26] border border-[#262a34] rounded-lg transition disabled:opacity-30 disabled:pointer-events-none"
-                  >
-                    Save
-                  </button>
+                  <div class="flex items-center justify-end gap-1.5">
+                    <button
+                      @click="store.addToSlip(match, 'away')"
+                      title="Add away to slip simulator"
+                      class="px-2.5 py-1 text-xs text-[#00f5ff] hover:bg-[#00f5ff]/10 border border-[#00f5ff]/30 rounded-lg transition"
+                    >
+                      ＋ Slip
+                    </button>
+                    <button
+                      @click="handleSavePrediction(match, 'away')"
+                      :disabled="isKickoffPassed(match.kickoff)"
+                      class="px-2.5 py-1 text-xs text-[#93a0b8] hover:text-[#eef3fb] hover:bg-[#171e2c] border border-[#243044] rounded-lg transition disabled:opacity-30 disabled:pointer-events-none"
+                    >
+                      Save
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -396,18 +435,18 @@
         <!-- Mobile Layout (< 600px) -->
         <div class="block sm:hidden space-y-2.5">
           <!-- Home Card -->
-          <div class="bg-[#0f1115] border border-[#262a34] rounded-lg p-3 space-y-2">
+          <div class="bg-[#0b0f16] border border-[#243044] rounded-lg p-3 space-y-2">
             <div class="flex items-center justify-between text-xs">
-              <span class="font-medium text-[#f1f3f7] flex items-center gap-1.5">
+              <span class="font-medium text-[#eef3fb] flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-xs bg-[#0d9488]"></span>
                 {{ match.homeTeam }} (1)
               </span>
-              <span class="font-mono text-[#f1f3f7] font-medium">
+              <span class="font-mono text-[#eef3fb] font-medium">
                 {{ (match.homeOdds / 100).toFixed(2) }}
               </span>
             </div>
 
-            <div class="flex items-center justify-between text-[11px] text-[#9aa1b2] font-mono">
+            <div class="flex items-center justify-between text-[11px] text-[#93a0b8] font-mono">
               <span>Market: {{ (getMatchEval(match).fair[0] * 100).toFixed(1) }}%</span>
               <span>Model: {{ (getMatchEval(match).model[0] * 100).toFixed(1) }}%</span>
             </div>
@@ -416,11 +455,17 @@
               <EdgeBar :edge="getMatchEval(match).edges[0]" />
             </div>
 
-            <div class="pt-1 flex justify-end">
+            <div class="pt-1 flex justify-end gap-2">
+              <button
+                @click="store.addToSlip(match, 'home')"
+                class="px-3 py-1 text-xs text-[#00f5ff] bg-[#111722] border border-[#00f5ff]/30 rounded-lg"
+              >
+                ＋ Slip
+              </button>
               <button
                 @click="handleSavePrediction(match, 'home')"
                 :disabled="isKickoffPassed(match.kickoff)"
-                class="px-3 py-1 text-xs text-[#9aa1b2] hover:text-[#f1f3f7] bg-[#16181e] border border-[#262a34] rounded-lg disabled:opacity-30"
+                class="px-3 py-1 text-xs text-[#93a0b8] hover:text-[#eef3fb] bg-[#111722] border border-[#243044] rounded-lg disabled:opacity-30"
               >
                 Save Home
               </button>
@@ -428,18 +473,18 @@
           </div>
 
           <!-- Draw Card -->
-          <div class="bg-[#0f1115] border border-[#262a34] rounded-lg p-3 space-y-2">
+          <div class="bg-[#0b0f16] border border-[#243044] rounded-lg p-3 space-y-2">
             <div class="flex items-center justify-between text-xs">
-              <span class="font-medium text-[#f1f3f7] flex items-center gap-1.5">
+              <span class="font-medium text-[#eef3fb] flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-xs bg-[#64748b]"></span>
                 Draw (X)
               </span>
-              <span class="font-mono text-[#f1f3f7] font-medium">
+              <span class="font-mono text-[#eef3fb] font-medium">
                 {{ (match.drawOdds / 100).toFixed(2) }}
               </span>
             </div>
 
-            <div class="flex items-center justify-between text-[11px] text-[#9aa1b2] font-mono">
+            <div class="flex items-center justify-between text-[11px] text-[#93a0b8] font-mono">
               <span>Market: {{ (getMatchEval(match).fair[1] * 100).toFixed(1) }}%</span>
               <span>Model: {{ (getMatchEval(match).model[1] * 100).toFixed(1) }}%</span>
             </div>
@@ -448,11 +493,17 @@
               <EdgeBar :edge="getMatchEval(match).edges[1]" />
             </div>
 
-            <div class="pt-1 flex justify-end">
+            <div class="pt-1 flex justify-end gap-2">
+              <button
+                @click="store.addToSlip(match, 'draw')"
+                class="px-3 py-1 text-xs text-[#00f5ff] bg-[#111722] border border-[#00f5ff]/30 rounded-lg"
+              >
+                ＋ Slip
+              </button>
               <button
                 @click="handleSavePrediction(match, 'draw')"
                 :disabled="isKickoffPassed(match.kickoff)"
-                class="px-3 py-1 text-xs text-[#9aa1b2] hover:text-[#f1f3f7] bg-[#16181e] border border-[#262a34] rounded-lg disabled:opacity-30"
+                class="px-3 py-1 text-xs text-[#93a0b8] hover:text-[#eef3fb] bg-[#111722] border border-[#243044] rounded-lg disabled:opacity-30"
               >
                 Save Draw
               </button>
@@ -460,18 +511,18 @@
           </div>
 
           <!-- Away Card -->
-          <div class="bg-[#0f1115] border border-[#262a34] rounded-lg p-3 space-y-2">
+          <div class="bg-[#0b0f16] border border-[#243044] rounded-lg p-3 space-y-2">
             <div class="flex items-center justify-between text-xs">
-              <span class="font-medium text-[#f1f3f7] flex items-center gap-1.5">
+              <span class="font-medium text-[#eef3fb] flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-xs bg-[#e11d48]"></span>
                 {{ match.awayTeam }} (2)
               </span>
-              <span class="font-mono text-[#f1f3f7] font-medium">
+              <span class="font-mono text-[#eef3fb] font-medium">
                 {{ (match.awayOdds / 100).toFixed(2) }}
               </span>
             </div>
 
-            <div class="flex items-center justify-between text-[11px] text-[#9aa1b2] font-mono">
+            <div class="flex items-center justify-between text-[11px] text-[#93a0b8] font-mono">
               <span>Market: {{ (getMatchEval(match).fair[2] * 100).toFixed(1) }}%</span>
               <span>Model: {{ (getMatchEval(match).model[2] * 100).toFixed(1) }}%</span>
             </div>
@@ -480,11 +531,17 @@
               <EdgeBar :edge="getMatchEval(match).edges[2]" />
             </div>
 
-            <div class="pt-1 flex justify-end">
+            <div class="pt-1 flex justify-end gap-2">
+              <button
+                @click="store.addToSlip(match, 'away')"
+                class="px-3 py-1 text-xs text-[#00f5ff] bg-[#111722] border border-[#00f5ff]/30 rounded-lg"
+              >
+                ＋ Slip
+              </button>
               <button
                 @click="handleSavePrediction(match, 'away')"
                 :disabled="isKickoffPassed(match.kickoff)"
-                class="px-3 py-1 text-xs text-[#9aa1b2] hover:text-[#f1f3f7] bg-[#16181e] border border-[#262a34] rounded-lg disabled:opacity-30"
+                class="px-3 py-1 text-xs text-[#93a0b8] hover:text-[#eef3fb] bg-[#111722] border border-[#243044] rounded-lg disabled:opacity-30"
               >
                 Save Away
               </button>
@@ -504,12 +561,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch, nextTick } from 'vue';
 import { useOddsStore } from '@/stores/oddsStore';
 import type { MatchAnalysis, OutcomeType } from '@/types';
 import EdgeBar from './EdgeBar.vue';
 import StackedProbBar from './StackedProbBar.vue';
 import MatchStatsModal from './MatchStatsModal.vue';
+import PageHeader from './PageHeader.vue';
 import { SPORTS_CONFIG } from '@/lib/oddsApi';
 import { getTeamStats } from '@/lib/teamAssets';
 
@@ -528,9 +586,22 @@ const manualHomeOdds = ref<number>(210);
 const manualDrawOdds = ref<number>(340);
 const manualAwayOdds = ref<number>(360);
 
+function scrollToFocused() {
+  const id = store.focusedMatchId;
+  if (!id) return;
+  nextTick(() => {
+    document
+      .querySelector(`[data-match-id="${CSS.escape(id)}"]`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+}
+
 onMounted(() => {
   store.initFirebaseSync();
+  scrollToFocused();
 });
+
+watch(() => store.focusedMatchId, scrollToFocused);
 
 function getCrest(teamName: string): string {
   return getTeamStats(teamName).crest;

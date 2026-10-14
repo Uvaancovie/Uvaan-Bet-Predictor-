@@ -1,40 +1,57 @@
 @import "tailwindcss";
 
+@theme inline {
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-app: #07090d;
+  --color-surface: #111722;
+  --color-inset: #0b0f16;
+  --color-raised: #171e2c;
+  --color-line: #243044;
+  --color-line-strong: #33445c;
+  --color-ink: #eef3fb;
+  --color-muted: #93a0b8;
+  --color-faint: #64748b;
+  --color-accent: #00f5ff;
+  --color-home: #00f5d4;
+  --color-draw: #94a3b8;
+  --color-away: #f43f5e;
+}
+
 :root {
-  --bg-app: #080a0f;
-  --bg-surface: #0e121a;
-  --bg-surface-hover: #141a26;
-  --bg-surface-active: #1a2233;
-  --border: #1e2638;
-  --border-light: #2b364e;
+  --bg-app: #07090d;
+  --bg-surface: #111722;
+  --bg-surface-hover: #171e2c;
+  --bg-surface-active: #1c2738;
+  --border: #243044;
+  --border-light: #33445c;
   --border-glow: rgba(0, 245, 255, 0.25);
-  
-  --text-main: #f0f4fc;
-  --text-secondary: #8d9bb0;
-  --text-muted: #56647a;
-  
-  /* Arc-Reactor Futuristic Accents */
+
+  --text-main: #eef3fb;
+  --text-secondary: #93a0b8;
+  --text-muted: #64748b;
+
   --accent-cyan: #00f5ff;
   --accent-cyan-glow: rgba(0, 245, 255, 0.4);
   --accent-blue: #3b82f6;
   --accent-blue-subtle: rgba(59, 130, 246, 0.12);
-  
-  /* Outcome tokens */
-  --outcome-home: #00f5d4; /* neon teal */
+
+  --outcome-home: #00f5d4;
   --outcome-home-subtle: rgba(0, 245, 212, 0.15);
-  
-  --outcome-draw: #94a3b8; /* slate chrome */
+  --outcome-draw: #94a3b8;
   --outcome-draw-subtle: rgba(148, 163, 184, 0.15);
-  
-  --outcome-away: #f43f5e; /* cyber coral */
+  --outcome-away: #f43f5e;
   --outcome-away-subtle: rgba(244, 63, 94, 0.15);
-  
-  /* Edge bar */
+
   --edge-positive: #00f5ff;
   --edge-negative: #475569;
 
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -42,21 +59,33 @@ body {
   color: var(--text-main);
   margin: 0;
   padding: 0;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  background-image: 
-    radial-gradient(rgba(0, 245, 255, 0.04) 1px, transparent 1px),
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 150, 255, 0.08), transparent);
-  background-size: 24px 24px, 100% 100%;
+  background-image:
+    radial-gradient(rgba(0, 245, 255, 0.045) 1px, transparent 1px),
+    radial-gradient(ellipse 70% 45% at 50% -15%, rgba(0, 150, 255, 0.09), transparent);
+  background-size: 22px 22px, 100% 100%;
   background-attachment: fixed;
 }
 
-/* Tabular figures for odds and metrics */
-.tabular-nums, .font-mono, td, th {
+::selection {
+  background: rgba(0, 245, 255, 0.28);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
+.tabular-nums,
+.font-mono,
+td,
+th {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
 }
 
-/* Sci-fi HUD corner bracket styling */
 .hud-bracket {
   position: relative;
 }
@@ -83,7 +112,6 @@ body {
   pointer-events: none;
 }
 
-/* Glowing card outline */
 .hud-glow {
   box-shadow: 0 0 20px rgba(0, 245, 255, 0.04), inset 0 0 15px rgba(0, 245, 255, 0.01);
 }
@@ -92,24 +120,44 @@ body {
   border-color: rgba(0, 245, 255, 0.35);
 }
 
-/* Futuristic scanline animation */
 @keyframes scanline {
   0% { transform: translateY(-100%); }
   100% { transform: translateY(1000%); }
 }
 
-/* Minimalist scrollbars */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.toast-in {
+  animation: toast-in 180ms ease-out;
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-app);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: var(--border-light);
-  border-radius: 4px;
+  border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #00f5ff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

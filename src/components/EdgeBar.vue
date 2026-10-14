@@ -1,7 +1,7 @@
 <template>
   <div class="flex items-center gap-2 w-full min-w-[120px]">
     <!-- Diverging bar container with center line at 0 -->
-    <div class="relative flex-1 h-3 bg-[#080a0f] rounded-xs flex items-center overflow-hidden border border-[#1e2638]">
+    <div class="relative flex-1 h-3 bg-[#0b0f16] rounded-xs flex items-center overflow-hidden border border-[#243044]">
       <!-- Center 0-line -->
       <div class="absolute left-1/2 top-0 bottom-0 w-[1px] bg-[#323d54] z-10"></div>
 
@@ -24,7 +24,7 @@
     <span
       :class="[
         'w-12 text-right text-xs font-mono tabular-nums',
-        edge > 0 ? 'text-[#00f5ff] font-semibold' : edge < 0 ? 'text-[#8d9bb0]' : 'text-[#56647a]'
+        edge > 0 ? 'text-[#00f5ff] font-semibold' : edge < 0 ? 'text-[#93a0b8]' : 'text-[#64748b]'
       ]"
     >
       {{ edge > 0 ? '+' : '' }}{{ (edge * 100).toFixed(1) }}%
