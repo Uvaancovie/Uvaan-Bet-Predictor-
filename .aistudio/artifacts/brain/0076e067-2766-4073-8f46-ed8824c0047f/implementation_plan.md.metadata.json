@@ -1,6 +1,6 @@
 {
-  "summary": "Clear, actionable 2-minute solutions to fix the Cloudflare Pages Bun build error: (1) Cloudflare Dashboard setting override (SKIP_DEPENDENCY_INSTALL=true and npm install in build command), (2) deleting bun.lock on GitHub/workspace, and (3) adding public/_redirects for SPA routing.",
-  "updatedAt": "2026-10-14T09:58:50.411529435Z",
+  "summary": "Comprehensive Reddit feedback strategy and ready-to-post drafts for OddsLab targeting quant and sports betting communities (r/algobetting, r/sportsanalytics, r/EV_Betting), focusing on Poisson math, EV validation, and developer peer-review engagement.",
+  "updatedAt": "2026-10-14T10:33:01.218795212Z",
   "requestFeedback": true,
   "userFacing": true
 }
