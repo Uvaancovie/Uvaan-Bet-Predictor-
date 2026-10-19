@@ -83,6 +83,48 @@
       </div>
     </section>
 
+    <!-- MyFootballFacts Quantitative Performance & Momentum Modeling -->
+    <section class="bg-[#111722] border border-[#243044] rounded-xl p-5 space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xs font-medium text-[#00f5ff] uppercase tracking-wider flex items-center gap-2">
+          <span>⚡</span>
+          <span>MyFootballFacts Momentum & Dixon-Coles Poisson Engine</span>
+        </h2>
+        <span class="text-[10px] font-mono text-[#93a0b8]">Version 2.0 Quant Synthesis</span>
+      </div>
+
+      <p class="text-xs text-[#93a0b8] leading-relaxed">
+        OddsLab combines high-resolution match archives with statistical distributions to model soccer match outcomes beyond flat table standings:
+      </p>
+
+      <div class="space-y-3 text-xs">
+        <div class="space-y-1">
+          <div class="text-[#eef3fb] font-medium">1. Exponentially Decayed Momentum Score ($M \in [0, 100]$)</div>
+          <p class="text-[#93a0b8]">
+            Recent performances are weighted using exponential decay ($w = [1.0, 0.85, 0.70, 0.55, 0.40]$). Each match performance rewards result points (3 for W, 1 for D), adjusted by goal difference ($+0.25 \times \Delta G$), clean sheet bonuses, and a $+15\%$ multiplier for away matches to account for venue difficulty.
+          </p>
+        </div>
+
+        <div class="space-y-1">
+          <div class="text-[#eef3fb] font-medium">2. Dixon-Coles Low-Score Calibration Factor ($\tau$)</div>
+          <p class="text-[#93a0b8]">
+            Standard bivariate Poisson models systematically underestimate low-scoring draws ($0-0$ and $1-1$). The Dixon-Coles parameter $\rho \approx -0.12$ adjusts the joint probability matrix:
+          </p>
+          <div class="bg-[#0b0f16] border border-[#243044] rounded-lg p-3 font-mono text-[11px] text-[#93a0b8] space-y-1">
+            <div>P(0,0) = (1 - λ_h · λ_a · ρ) · Pois(0; λ_h) · Pois(0; λ_a)</div>
+            <div>P(1,1) = (1 - ρ) · Pois(1; λ_h) · Pois(1; λ_a)</div>
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <div class="text-[#eef3fb] font-medium">3. Head-to-Head (H2H) Historical Shrinkage</div>
+          <p class="text-[#93a0b8]">
+            Long-term derby archives (such as Sundowns vs Pirates or Soweto derbies) establish historical strike rates for Both Teams to Score (BTTS) and Over 2.5 Goals, shrinking Poisson goal expectancy towards empirical head-to-head baselines.
+          </p>
+        </div>
+      </div>
+    </section>
+
     <!-- Limits of modeling -->
     <section class="bg-[#111722] border border-[#243044] rounded-xl p-5 space-y-2 text-xs">
       <h2 class="text-xs font-medium text-[#eef3fb]">Limits & Uncertainty</h2>

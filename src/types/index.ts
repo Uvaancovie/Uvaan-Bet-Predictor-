@@ -53,6 +53,17 @@ export interface PredictionRecord {
   selectedFairProb: number;
   selectedEdge: number;
   
+  // Momentum & quantitative performance snapshot
+  momentumSnapshot?: {
+    homeScore: number;
+    awayScore: number;
+    diff: number;
+    homeTrend: 'surging' | 'stable' | 'declining';
+    awayTrend: 'surging' | 'stable' | 'declining';
+  };
+  h2hNote?: string;
+  expectedScore?: string; // e.g. "2 - 1"
+
   // Settlement fields
   settled: boolean;
   actualOutcome: SettlementResult;
@@ -62,6 +73,9 @@ export interface PredictionRecord {
   pnlUnits?: number; // based on 1 unit flat stake
   brierScore?: number;
 }
+
+export type { HistoricalMatch, FormMatch, HeadToHeadSummary } from '@/lib/historicalData';
+export type { TeamMomentum, ScorelineProb, QuantitativePrediction } from '@/lib/momentumEngine';
 
 export interface SlipLeg {
   matchId: string;

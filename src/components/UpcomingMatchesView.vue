@@ -126,36 +126,131 @@
             </div>
           </div>
 
+          <!-- Momentum & H2H Performance Bar -->
+          <div class="rounded-xl border border-line bg-inset/70 p-2.5 space-y-2">
+            <div class="flex items-center justify-between text-xs font-mono">
+              <div class="flex items-center gap-1.5 text-home">
+                <span class="font-semibold">{{ getMatchQuant(match).homeMomentum.momentumScore }} pts</span>
+                <span :class="getTrendColor(getMatchQuant(match).homeMomentum.trend)" class="text-[10px]">
+                  {{ getTrendSymbol(getMatchQuant(match).homeMomentum.trend) }}
+                </span>
+                <span class="text-[10px] text-faint truncate max-w-[90px]">{{ match.homeTeam }}</span>
+              </div>
+
+              <div class="text-[10px] text-faint">
+                <span v-if="Math.abs(getMatchQuant(match).momentumDiff) >= 5" class="text-accent font-semibold">
+                  Δ {{ Math.abs(getMatchQuant(match).momentumDiff) }} pt edge
+                </span>
+                <span v-else class="text-faint">Even Momentum</span>
+              </div>
+
+              <div class="flex items-center gap-1.5 text-away justify-end">
+                <span class="text-[10px] text-faint truncate max-w-[90px]">{{ match.awayTeam }}</span>
+                <span :class="getTrendColor(getMatchQuant(match).awayMomentum.trend)" class="text-[10px]">
+                  {{ getTrendSymbol(getMatchQuant(match).awayMomentum.trend) }}
+                </span>
+                <span class="font-semibold">{{ getMatchQuant(match).awayMomentum.momentumScore }} pts</span>
+              </div>
+            </div>
+
+            <!-- Momentum split meter -->
+            <div class="w-full h-1.5 rounded-full overflow-hidden flex bg-line">
+              <div
+                class="bg-home h-full transition-all"
+                :style="{ width: `${getMatchQuant(match).homeMomentum.momentumScore / (getMatchQuant(match).homeMomentum.momentumScore + getMatchQuant(match).awayMomentum.momentumScore) * 100}%` }"
+              ></div>
+              <div
+                class="bg-away h-full transition-all"
+                :style="{ width: `${getMatchQuant(match).awayMomentum.momentumScore / (getMatchQuant(match).homeMomentum.momentumScore + getMatchQuant(match).awayMomentum.momentumScore) * 100}%` }"
+              ></div>
+            </div>
+
+            <!-- H2H quick summary row -->
+            <div class="flex items-center justify-between text-[11px] text-muted pt-0.5">
+              <span class="font-mono text-[10px]">
+                H2H: {{ getMatchQuant(match).h2hSummary.homeWins }}W - {{ getMatchQuant(match).h2hSummary.draws }}D - {{ getMatchQuant(match).h2hSummary.awayWins }}L
+                <span class="text-faint">({{ getMatchQuant(match).h2hSummary.totalPlayed }} games)</span>
+              </span>
+              <span class="font-mono text-[10px] text-accent">
+                BTTS {{ getMatchQuant(match).h2hSummary.bttsPct }}% • O2.5 {{ getMatchQuant(match).h2hSummary.over25Pct }}%
+              </span>
+            </div>
+          </div>
+
           <div class="grid grid-cols-3 gap-2 text-center">
             <button
               type="button"
               @click="store.addToSlip(match, 'home')"
               title="Add home to bet slip simulator"
-              class="rounded-lg border border-line bg-inset px-2 py-2 transition hover:border-accent/50 hover:bg-accent/10"
+              :class="[
+                'rounded-lg border px-2 py-2 transition relative',
+                getMatchQuant(match).recommendedOutcome === 'home' && getMatchQuant(match).hasPositiveEdge
+                  ? 'border-accent bg-accent/15 ring-1 ring-accent/30'
+                  : 'border-line bg-inset hover:border-accent/50 hover:bg-accent/10'
+              ]"
             >
-              <div class="text-[10px] font-semibold uppercase tracking-wider text-home">Home ＋</div>
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-semibold uppercase tracking-wider text-home">Home</span>
+                <span
+                  v-if="getMatchQuant(match).edgeHome > 0"
+                  class="text-[9px] font-mono text-accent"
+                >
+                  +{{ (getMatchQuant(match).edgeHome * 100).toFixed(1) }}%
+                </span>
+              </div>
               <div class="mt-0.5 font-mono text-lg font-semibold tabular-nums text-ink">{{ decimal(match.homeOdds) }}</div>
             </button>
             <button
               type="button"
               @click="store.addToSlip(match, 'draw')"
               title="Add draw to bet slip simulator"
-              class="rounded-lg border border-line bg-inset px-2 py-2 transition hover:border-accent/50 hover:bg-accent/10"
+              :class="[
+                'rounded-lg border px-2 py-2 transition relative',
+                getMatchQuant(match).recommendedOutcome === 'draw' && getMatchQuant(match).hasPositiveEdge
+                  ? 'border-accent bg-accent/15 ring-1 ring-accent/30'
+                  : 'border-line bg-inset hover:border-accent/50 hover:bg-accent/10'
+              ]"
             >
-              <div class="text-[10px] font-semibold uppercase tracking-wider text-draw">Draw ＋</div>
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-semibold uppercase tracking-wider text-draw">Draw</span>
+                <span
+                  v-if="getMatchQuant(match).edgeDraw > 0"
+                  class="text-[9px] font-mono text-accent"
+                >
+                  +{{ (getMatchQuant(match).edgeDraw * 100).toFixed(1) }}%
+                </span>
+              </div>
               <div class="mt-0.5 font-mono text-lg font-semibold tabular-nums text-ink">{{ decimal(match.drawOdds) }}</div>
             </button>
             <button
               type="button"
               @click="store.addToSlip(match, 'away')"
               title="Add away to bet slip simulator"
-              class="rounded-lg border border-line bg-inset px-2 py-2 transition hover:border-accent/50 hover:bg-accent/10"
+              :class="[
+                'rounded-lg border px-2 py-2 transition relative',
+                getMatchQuant(match).recommendedOutcome === 'away' && getMatchQuant(match).hasPositiveEdge
+                  ? 'border-accent bg-accent/15 ring-1 ring-accent/30'
+                  : 'border-line bg-inset hover:border-accent/50 hover:bg-accent/10'
+              ]"
             >
-              <div class="text-[10px] font-semibold uppercase tracking-wider text-away">Away ＋</div>
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-semibold uppercase tracking-wider text-away">Away</span>
+                <span
+                  v-if="getMatchQuant(match).edgeAway > 0"
+                  class="text-[9px] font-mono text-accent"
+                >
+                  +{{ (getMatchQuant(match).edgeAway * 100).toFixed(1) }}%
+                </span>
+              </div>
               <div class="mt-0.5 font-mono text-lg font-semibold tabular-nums text-ink">{{ decimal(match.awayOdds) }}</div>
             </button>
           </div>
-          <p class="text-[11px] text-faint">Tap an odds box to add it to the 🎲 slip simulator.</p>
+          <div class="flex items-center justify-between text-[11px] text-faint">
+            <span>Tap odds to add to simulator.</span>
+            <span v-if="getMatchQuant(match).hasPositiveEdge" class="text-accent font-medium">
+              🎯 Model edge on {{ getMatchQuant(match).recommendedOutcome.toUpperCase() }}
+            </span>
+          </div>
         </div>
 
         <div class="flex items-center justify-between gap-2 border-t border-line pt-3">
@@ -171,10 +266,11 @@
             </button>
             <button
               type="button"
-              @click="openStats(match)"
-              class="min-h-9 rounded-lg border border-line bg-inset px-3 text-xs font-medium text-muted transition hover:text-ink"
+              @click="openStats(match, 'momentum')"
+              class="min-h-9 rounded-lg border border-line bg-inset px-3 text-xs font-medium text-muted transition hover:text-ink flex items-center gap-1.5"
             >
-              Head to head
+              <span>⚡</span>
+              <span>H2H & Form</span>
             </button>
             <button
               type="button"
@@ -191,6 +287,7 @@
     <MatchStatsModal
       :isOpen="showStatsModal"
       :match="selectedMatchForStats"
+      :initialTab="statsInitialTab"
       @close="showStatsModal = false"
     />
   </div>
@@ -208,8 +305,30 @@ import MatchStatsModal from './MatchStatsModal.vue';
 const store = useOddsStore();
 const searchQuery = ref('');
 const showStatsModal = ref(false);
+const statsInitialTab = ref<'momentum' | 'forecast' | 'tactical'>('momentum');
 const selectedMatchForStats = ref<MatchAnalysis | null>(null);
 const hiddenCrests = ref<Record<string, true>>({});
+
+const quantCache = new Map<string, any>();
+function getMatchQuant(match: MatchAnalysis) {
+  const key = `${match.id}_${match.homeOdds}_${match.drawOdds}_${match.awayOdds}`;
+  if (!quantCache.has(key)) {
+    quantCache.set(key, store.getMatchQuantPrediction(match));
+  }
+  return quantCache.get(key);
+}
+
+function getTrendColor(trend: 'surging' | 'stable' | 'declining'): string {
+  if (trend === 'surging') return 'text-emerald-400';
+  if (trend === 'declining') return 'text-rose-400';
+  return 'text-slate-400';
+}
+
+function getTrendSymbol(trend: 'surging' | 'stable' | 'declining'): string {
+  if (trend === 'surging') return '▲';
+  if (trend === 'declining') return '▼';
+  return '▬';
+}
 
 const filteredMatches = computed(() => {
   return store.matches.filter((m) => {
@@ -246,16 +365,15 @@ function getVig(match: MatchAnalysis): string {
   return ev.marginPercent.toFixed(1);
 }
 
-function openStats(match: MatchAnalysis) {
+function openStats(match: MatchAnalysis, tab: 'momentum' | 'forecast' | 'tactical' = 'momentum') {
   selectedMatchForStats.value = match;
+  statsInitialTab.value = tab;
   showStatsModal.value = true;
 }
 
 function addBestValue(match: MatchAnalysis) {
-  const ev = store.evaluateMatch(match);
-  const idx = ev.edges.indexOf(Math.max(...ev.edges));
-  const outcome = idx === 0 ? 'home' : idx === 1 ? 'draw' : 'away';
-  store.addToSlip(match, outcome);
+  const quant = getMatchQuant(match);
+  store.addToSlip(match, quant.recommendedOutcome);
 }
 
 function selectForAnalysis(match: MatchAnalysis) {

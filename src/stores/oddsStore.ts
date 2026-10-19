@@ -20,6 +20,13 @@ import type {
 import { fetchLiveOdds, SPORTS_CONFIG, ODDS_API_KEY } from '@/lib/oddsApi';
 import { db } from '@/lib/firebase';
 import { collection, doc, setDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
+import {
+  calculateTeamMomentum,
+  generateQuantitativePrediction,
+  type TeamMomentum,
+  type QuantitativePrediction,
+} from '@/lib/momentumEngine';
+import { getHeadToHead, type HeadToHeadSummary } from '@/lib/historicalData';
 
 const STORAGE_KEY = 'odds_lab_store_v1';
 
@@ -111,13 +118,22 @@ const INITIAL_PREDICTIONS: PredictionRecord[] = [
     createdAt: '2026-10-01T12:00:00Z',
     oddsSnapshot: { home: 210, draw: 320, away: 370 },
     fairSnapshot: { home: 0.457, draw: 0.300, away: 0.243 },
-    modelSnapshot: { home: 0.505, draw: 0.285, away: 0.210, modelVersion: 'odds-lab-v1.0-dirichlet-devig' },
+    modelSnapshot: { home: 0.505, draw: 0.285, away: 0.210, modelVersion: 'odds-lab-v2.0-dixon-coles-quant' },
     edges: { home: 0.048, draw: -0.015, away: -0.033 },
     selectedOutcome: 'home',
     selectedOdds: 210,
     selectedModelProb: 0.505,
     selectedFairProb: 0.457,
     selectedEdge: 0.048,
+    momentumSnapshot: {
+      homeScore: 78,
+      awayScore: 54,
+      diff: 24,
+      homeTrend: 'surging',
+      awayTrend: 'declining',
+    },
+    h2hNote: 'Arrows unbeaten in last 4 meetings (3W-1D), avg 1.8 goals/gm',
+    expectedScore: '2 - 0',
     settled: true,
     actualOutcome: 'home',
     actualScore: '2 - 0',
@@ -136,13 +152,22 @@ const INITIAL_PREDICTIONS: PredictionRecord[] = [
     createdAt: '2026-10-02T10:00:00Z',
     oddsSnapshot: { home: 280, draw: 300, away: 265 },
     fairSnapshot: { home: 0.339, draw: 0.317, away: 0.344 },
-    modelSnapshot: { home: 0.290, draw: 0.330, away: 0.380, modelVersion: 'odds-lab-v1.0-dirichlet-devig' },
+    modelSnapshot: { home: 0.290, draw: 0.330, away: 0.380, modelVersion: 'odds-lab-v2.0-dixon-coles-quant' },
     edges: { home: -0.049, draw: 0.013, away: 0.036 },
     selectedOutcome: 'away',
     selectedOdds: 265,
     selectedModelProb: 0.380,
     selectedFairProb: 0.344,
     selectedEdge: 0.036,
+    momentumSnapshot: {
+      homeScore: 52,
+      awayScore: 68,
+      diff: -16,
+      homeTrend: 'stable',
+      awayTrend: 'surging',
+    },
+    h2hNote: 'Away side higher xG in 3 of last 4 road fixtures',
+    expectedScore: '1 - 2',
     settled: true,
     actualOutcome: 'draw',
     actualScore: '1 - 1',
@@ -161,13 +186,22 @@ const INITIAL_PREDICTIONS: PredictionRecord[] = [
     createdAt: '2026-10-03T11:00:00Z',
     oddsSnapshot: { home: 310, draw: 310, away: 235 },
     fairSnapshot: { home: 0.306, draw: 0.306, away: 0.388 },
-    modelSnapshot: { home: 0.280, draw: 0.290, away: 0.430, modelVersion: 'odds-lab-v1.0-dirichlet-devig' },
+    modelSnapshot: { home: 0.280, draw: 0.290, away: 0.430, modelVersion: 'odds-lab-v2.0-dixon-coles-quant' },
     edges: { home: -0.026, draw: -0.016, away: 0.042 },
     selectedOutcome: 'away',
     selectedOdds: 235,
     selectedModelProb: 0.430,
     selectedFairProb: 0.388,
     selectedEdge: 0.042,
+    momentumSnapshot: {
+      homeScore: 44,
+      awayScore: 72,
+      diff: -28,
+      homeTrend: 'declining',
+      awayTrend: 'surging',
+    },
+    h2hNote: 'Sekhukhune 3 clean sheets in last 4 matches',
+    expectedScore: '0 - 1',
     settled: true,
     actualOutcome: 'away',
     actualScore: '0 - 1',
@@ -186,13 +220,22 @@ const INITIAL_PREDICTIONS: PredictionRecord[] = [
     createdAt: '2026-10-04T16:00:00Z',
     oddsSnapshot: { home: 220, draw: 310, away: 350 },
     fairSnapshot: { home: 0.439, draw: 0.311, away: 0.250 },
-    modelSnapshot: { home: 0.485, draw: 0.305, away: 0.210, modelVersion: 'odds-lab-v1.0-dirichlet-devig' },
+    modelSnapshot: { home: 0.485, draw: 0.305, away: 0.210, modelVersion: 'odds-lab-v2.0-dixon-coles-quant' },
     edges: { home: 0.046, draw: -0.006, away: -0.040 },
     selectedOutcome: 'home',
     selectedOdds: 220,
     selectedModelProb: 0.485,
     selectedFairProb: 0.439,
     selectedEdge: 0.046,
+    momentumSnapshot: {
+      homeScore: 66,
+      awayScore: 48,
+      diff: 18,
+      homeTrend: 'surging',
+      awayTrend: 'declining',
+    },
+    h2hNote: 'Galaxy undefeated at home vs AmaZulu across 5 meetings',
+    expectedScore: '1 - 0',
     settled: true,
     actualOutcome: 'home',
     actualScore: '1 - 0',
@@ -422,6 +465,31 @@ export const useOddsStore = defineStore('odds', {
       return count;
     },
 
+    getMatchMomentum(match: MatchAnalysis) {
+      const home = calculateTeamMomentum(match.homeTeam, match.league);
+      const away = calculateTeamMomentum(match.awayTeam, match.league);
+      return {
+        home,
+        away,
+        diff: home.momentumScore - away.momentumScore,
+      };
+    },
+
+    getMatchQuantPrediction(match: MatchAnalysis): QuantitativePrediction {
+      return generateQuantitativePrediction({
+        homeTeam: match.homeTeam,
+        awayTeam: match.awayTeam,
+        league: match.league,
+        odds: [match.homeOdds, match.drawOdds, match.awayOdds],
+        homeExpGoals: match.homeExpGoals,
+        awayExpGoals: match.awayExpGoals,
+      });
+    },
+
+    getMatchH2H(match: MatchAnalysis): HeadToHeadSummary {
+      return getHeadToHead(match.homeTeam, match.awayTeam, match.league);
+    },
+
     async savePrediction(matchId: string, outcome: OutcomeType) {
       const match = this.matches.find((m) => m.id === matchId);
       if (!match) return;
@@ -433,6 +501,7 @@ export const useOddsStore = defineStore('odds', {
       }
 
       const evalData = this.evaluateMatch(match);
+      const quant = this.getMatchQuantPrediction(match);
       const outcomeIndex = outcome === 'home' ? 0 : outcome === 'draw' ? 1 : 2;
       const selectedOdds = outcome === 'home' ? match.homeOdds : outcome === 'draw' ? match.drawOdds : match.awayOdds;
 
@@ -453,6 +522,15 @@ export const useOddsStore = defineStore('odds', {
         selectedModelProb: evalData.model[outcomeIndex],
         selectedFairProb: evalData.fair[outcomeIndex],
         selectedEdge: evalData.edges[outcomeIndex],
+        momentumSnapshot: {
+          homeScore: quant.homeMomentum.momentumScore,
+          awayScore: quant.awayMomentum.momentumScore,
+          diff: quant.momentumDiff,
+          homeTrend: quant.homeMomentum.trend,
+          awayTrend: quant.awayMomentum.trend,
+        },
+        h2hNote: `${match.homeTeam} vs ${match.awayTeam}: ${quant.h2hSummary.homeWins}W-${quant.h2hSummary.draws}D-${quant.h2hSummary.awayWins}L (BTTS ${quant.h2hSummary.bttsPct}%)`,
+        expectedScore: quant.topScorelines[0]?.score || undefined,
         settled: false,
         actualOutcome: null,
       };

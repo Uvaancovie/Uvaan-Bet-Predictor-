@@ -120,3 +120,53 @@ describe('odds.ts pure functions & exact test values', () => {
     expect(matches[1].homeTeam).toBe('Chiefs');
   });
 });
+
+import { calculateTeamMomentum, generateQuantitativePrediction } from './momentumEngine';
+import { getHeadToHead, getTeamRecentMatches } from './historicalData';
+
+describe('momentumEngine.ts & historicalData.ts', () => {
+  it('calculates team momentum bounded between 0 and 100 with valid trend', () => {
+    const sundownsMom = calculateTeamMomentum('Mamelodi Sundowns', 'PSL');
+    expect(sundownsMom.momentumScore).toBeGreaterThanOrEqual(15);
+    expect(sundownsMom.momentumScore).toBeLessThanOrEqual(100);
+    expect(['surging', 'stable', 'declining']).toContain(sundownsMom.trend);
+    expect(sundownsMom.recentMatches).toHaveLength(5);
+    expect(sundownsMom.cleanSheetRate).toBeGreaterThanOrEqual(0);
+  });
+
+  it('retrieves authentic head-to-head records for Mamelodi Sundowns vs Orlando Pirates', () => {
+    const h2h = getHeadToHead('Mamelodi Sundowns', 'Orlando Pirates', 'PSL');
+    expect(h2h.totalPlayed).toBeGreaterThanOrEqual(6);
+    expect(h2h.homeWins + h2h.draws + h2h.awayWins).toBe(h2h.totalPlayed);
+    expect(h2h.bttsPct).toBeGreaterThanOrEqual(0);
+    expect(h2h.over25Pct).toBeGreaterThanOrEqual(0);
+    expect(h2h.avgTotalGoals).toBeGreaterThan(0);
+  });
+
+  it('generates synthetic realistic H2H records for uncataloged clubs without errors', () => {
+    const h2h = getHeadToHead('Custom FC A', 'Custom FC B', 'Amateur League');
+    expect(h2h.totalPlayed).toBeGreaterThan(0);
+    expect(h2h.recentMatches.length).toBe(h2h.totalPlayed);
+    expect(h2h.homeWinPct + h2h.drawPct + h2h.awayWinPct).toBeCloseTo(100, 0);
+  });
+
+  it('generates quantitative prediction with Dixon-Coles probabilities summing to 1.0', () => {
+    const quant = generateQuantitativePrediction({
+      homeTeam: 'Mamelodi Sundowns',
+      awayTeam: 'Orlando Pirates',
+      league: 'PSL',
+      odds: [210, 340, 360],
+      homeExpGoals: 1.6,
+      awayExpGoals: 0.9,
+    });
+
+    const sum = quant.homeProb + quant.drawProb + quant.awayProb;
+    expect(sum).toBeCloseTo(1.0, 4);
+    expect(quant.topScorelines).toHaveLength(5);
+    expect(quant.bttsProb).toBeGreaterThan(0);
+    expect(quant.bttsProb).toBeLessThan(1);
+    expect(quant.over25Prob).toBeGreaterThan(0);
+    expect(quant.under25Prob).toBeCloseTo(1 - quant.over25Prob, 4);
+    expect(quant.momentumTiltExplanation).toContain('momentum');
+  });
+});

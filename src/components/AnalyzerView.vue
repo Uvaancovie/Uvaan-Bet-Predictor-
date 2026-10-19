@@ -260,10 +260,11 @@
 
             <!-- View Stats & H2H Modal button -->
             <button
-              @click="openStats(match)"
-              class="px-2.5 py-1 text-xs text-[#93a0b8] hover:text-[#eef3fb] bg-[#171e2c] hover:bg-[#1c2738] border border-[#243044] rounded-lg transition"
+              @click="openStats(match, 'momentum')"
+              class="px-2.5 py-1 text-xs text-[#00f5ff] hover:bg-[#00f5ff]/10 bg-[#00f5ff]/5 border border-[#00f5ff]/30 rounded-lg transition flex items-center gap-1"
             >
-              Stats & H2H
+              <span>⚡</span>
+              <span>H2H & Momentum</span>
             </button>
 
             <!-- Remove match button -->
@@ -274,6 +275,52 @@
             >
               ✕
             </button>
+          </div>
+        </div>
+
+        <!-- MyFootballFacts Momentum & H2H Performance Bar -->
+        <div class="bg-[#0b0f16] p-3 rounded-lg border border-[#243044] space-y-2">
+          <div class="flex items-center justify-between text-xs font-mono">
+            <div class="flex items-center gap-1.5 text-[#0d9488]">
+              <span class="font-bold">{{ getMatchQuant(match).homeMomentum.momentumScore }} pts</span>
+              <span class="text-[10px]">{{ getMatchQuant(match).homeMomentum.trend === 'surging' ? '▲' : getMatchQuant(match).homeMomentum.trend === 'declining' ? '▼' : '▬' }}</span>
+              <span class="text-[11px] text-[#93a0b8]">{{ match.homeTeam }}</span>
+            </div>
+
+            <div class="text-[10px] text-[#93a0b8]">
+              <span v-if="Math.abs(getMatchQuant(match).momentumDiff) >= 5" class="text-[#00f5ff] font-semibold">
+                Δ {{ Math.abs(getMatchQuant(match).momentumDiff) }} pt momentum edge
+              </span>
+              <span v-else class="text-[#64748b]">Balanced Momentum</span>
+            </div>
+
+            <div class="flex items-center gap-1.5 text-[#e11d48] justify-end">
+              <span class="text-[11px] text-[#93a0b8]">{{ match.awayTeam }}</span>
+              <span class="text-[10px]">{{ getMatchQuant(match).awayMomentum.trend === 'surging' ? '▲' : getMatchQuant(match).awayMomentum.trend === 'declining' ? '▼' : '▬' }}</span>
+              <span class="font-bold">{{ getMatchQuant(match).awayMomentum.momentumScore }} pts</span>
+            </div>
+          </div>
+
+          <!-- Progress split meter -->
+          <div class="w-full h-1.5 rounded-full overflow-hidden flex bg-[#171e2c]">
+            <div
+              class="bg-[#0d9488] h-full transition-all"
+              :style="{ width: `${getMatchQuant(match).homeMomentum.momentumScore / (getMatchQuant(match).homeMomentum.momentumScore + getMatchQuant(match).awayMomentum.momentumScore) * 100}%` }"
+            ></div>
+            <div
+              class="bg-[#e11d48] h-full transition-all"
+              :style="{ width: `${getMatchQuant(match).awayMomentum.momentumScore / (getMatchQuant(match).homeMomentum.momentumScore + getMatchQuant(match).awayMomentum.momentumScore) * 100}%` }"
+            ></div>
+          </div>
+
+          <div class="flex items-center justify-between text-[11px] text-[#93a0b8] pt-0.5">
+            <span class="font-mono text-[10px]">
+              H2H: {{ getMatchQuant(match).h2hSummary.homeWins }}W - {{ getMatchQuant(match).h2hSummary.draws }}D - {{ getMatchQuant(match).h2hSummary.awayWins }}L
+              <span class="text-[#64748b]">({{ getMatchQuant(match).h2hSummary.totalPlayed }} meetings)</span>
+            </span>
+            <span class="font-mono text-[10px] text-[#00f5ff]">
+              BTTS {{ getMatchQuant(match).h2hSummary.bttsPct }}% • Over 2.5 {{ getMatchQuant(match).h2hSummary.over25Pct }}%
+            </span>
           </div>
         </div>
 
@@ -555,6 +602,7 @@
     <MatchStatsModal
       :isOpen="showStatsModal"
       :match="selectedMatchForStats"
+      :initialTab="statsInitialTab"
       @close="showStatsModal = false"
     />
   </div>
@@ -576,7 +624,17 @@ const slateInput = ref('');
 const showManualForm = ref(false);
 
 const showStatsModal = ref(false);
+const statsInitialTab = ref<'momentum' | 'forecast' | 'tactical'>('momentum');
 const selectedMatchForStats = ref<MatchAnalysis | null>(null);
+
+const quantCache = new Map<string, any>();
+function getMatchQuant(match: MatchAnalysis) {
+  const key = `${match.id}_${match.homeOdds}_${match.drawOdds}_${match.awayOdds}`;
+  if (!quantCache.has(key)) {
+    quantCache.set(key, store.getMatchQuantPrediction(match));
+  }
+  return quantCache.get(key);
+}
 
 const manualHome = ref('');
 const manualAway = ref('');
@@ -607,8 +665,9 @@ function getCrest(teamName: string): string {
   return getTeamStats(teamName).crest;
 }
 
-function openStats(match: MatchAnalysis) {
+function openStats(match: MatchAnalysis, tab: 'momentum' | 'forecast' | 'tactical' = 'momentum') {
   selectedMatchForStats.value = match;
+  statsInitialTab.value = tab;
   showStatsModal.value = true;
 }
 

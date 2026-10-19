@@ -112,6 +112,27 @@
           </div>
         </div>
 
+        <!-- Locked Momentum Snapshot & H2H Note -->
+        <div v-if="pred.momentumSnapshot || pred.h2hNote" class="bg-[#0b0f16] border border-[#243044] rounded-lg p-2.5 text-xs font-mono space-y-1.5">
+          <div class="flex items-center justify-between text-[11px] flex-wrap gap-2">
+            <div v-if="pred.momentumSnapshot" class="flex items-center gap-2">
+              <span class="text-[#64748b] text-[10px] font-sans">Pre-Kickoff Momentum:</span>
+              <span class="text-[#0d9488] font-semibold">{{ pred.homeTeam }}: {{ pred.momentumSnapshot.homeScore }} pts</span>
+              <span class="text-[#64748b] text-[10px]">v</span>
+              <span class="text-[#e11d48] font-semibold">{{ pred.awayTeam }}: {{ pred.momentumSnapshot.awayScore }} pts</span>
+              <span class="text-[#00f5ff] text-[10px] px-1.5 py-0.2 rounded bg-[#00f5ff]/10 border border-[#00f5ff]/20">
+                Δ {{ pred.momentumSnapshot.diff > 0 ? '+' : '' }}{{ pred.momentumSnapshot.diff }} pts
+              </span>
+            </div>
+            <div v-if="pred.expectedScore" class="text-[10px] text-[#93a0b8]">
+              Projected Score: <strong class="text-[#eef3fb]">{{ pred.expectedScore }}</strong>
+            </div>
+          </div>
+          <div v-if="pred.h2hNote" class="text-[10px] text-[#93a0b8] font-sans">
+            {{ pred.h2hNote }}
+          </div>
+        </div>
+
         <!-- Comparison Table: Model's probabilities vs Market's probabilities -->
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs tabular-nums">
